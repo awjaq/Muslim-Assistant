@@ -3,18 +3,14 @@
     "step": {
       "user": {
         "title": "Muslim Assistant Setup",
-        "description": "Configure your Muslim Assistant integration with your location and preferred prayer time calculation method.",
+        "description": "Location is automatically detected from your Home Assistant settings. Just choose your preferred prayer calculation method.",
         "data": {
           "name": "Name",
-          "latitude": "Latitude",
-          "longitude": "Longitude",
           "calculation_method": "Calculation Method",
           "school": "Jurisprudence School"
         },
         "data_description": {
           "name": "A name for this Muslim Assistant instance.",
-          "latitude": "Your latitude for accurate prayer times.",
-          "longitude": "Your longitude for accurate prayer times.",
           "calculation_method": "The prayer time calculation method (e.g., ISNA, MWL, Makkah).",
           "school": "Standard (Shafi/Maliki/Hanbali) or Hanafi school for Asr calculation."
         }

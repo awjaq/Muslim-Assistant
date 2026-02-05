@@ -1,0 +1,98 @@
+get_surah:
+  name: Get Surah
+  description: Fetch a complete Surah from the Quran with Arabic text and English translation.
+  fields:
+    surah_number:
+      name: Surah Number
+      description: The number of the Surah (1-114).
+      required: true
+      example: 1
+      selector:
+        number:
+          min: 1
+          max: 114
+          mode: box
+
+get_ayah:
+  name: Get Ayah
+  description: Fetch a specific Ayah (verse) from the Quran.
+  fields:
+    surah_number:
+      name: Surah Number
+      description: The number of the Surah (1-114).
+      required: true
+      example: 2
+      selector:
+        number:
+          min: 1
+          max: 114
+          mode: box
+    ayah_number:
+      name: Ayah Number
+      description: The number of the Ayah within the Surah.
+      required: true
+      example: 255
+      selector:
+        number:
+          min: 1
+          max: 286
+          mode: box
+
+tasbih_increment:
+  name: Tasbih Increment
+  description: Increment the Tasbih counter.
+  fields:
+    amount:
+      name: Amount
+      description: The amount to increment by (default 1).
+      required: false
+      default: 1
+      example: 1
+      selector:
+        number:
+          min: 1
+          max: 100
+          mode: box
+
+tasbih_reset:
+  name: Tasbih Reset
+  description: Reset the Tasbih counter to zero.
+
+tasbih_set_target:
+  name: Tasbih Set Target
+  description: Set the target count for the Tasbih counter.
+  fields:
+    target:
+      name: Target
+      description: The target count to reach.
+      required: true
+      example: 33
+      selector:
+        number:
+          min: 1
+          max: 10000
+          mode: box
+
+tasbih_set_dhikr:
+  name: Tasbih Set Dhikr
+  description: Set the Dhikr text for the Tasbih counter.
+  fields:
+    dhikr:
+      name: Dhikr
+      description: The Dhikr text to set (e.g., SubhanAllah, Alhamdulillah, Allahu Akbar).
+      required: true
+      example: "SubhanAllah"
+      selector:
+        text:
+
+get_dua:
+  name: Get Dua
+  description: Get a Dua (supplication) from the collection.
+  fields:
+    category:
+      name: Category
+      description: Optional category filter (e.g., morning, evening, eating, travel).
+      required: false
+      example: "morning"
+      selector:
+        text:

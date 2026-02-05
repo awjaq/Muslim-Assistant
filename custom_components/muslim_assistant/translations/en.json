@@ -1,0 +1,93 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Muslim Assistant Setup",
+        "description": "Configure your Muslim Assistant integration with your location and preferred prayer time calculation method.",
+        "data": {
+          "name": "Name",
+          "latitude": "Latitude",
+          "longitude": "Longitude",
+          "calculation_method": "Calculation Method",
+          "school": "Jurisprudence School"
+        },
+        "data_description": {
+          "name": "A name for this Muslim Assistant instance.",
+          "latitude": "Your latitude for accurate prayer times.",
+          "longitude": "Your longitude for accurate prayer times.",
+          "calculation_method": "The prayer time calculation method (e.g., ISNA, MWL, Makkah).",
+          "school": "Standard (Shafi/Maliki/Hanbali) or Hanafi school for Asr calculation."
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "This location is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Muslim Assistant Settings",
+        "description": "Configure your Muslim Assistant preferences.",
+        "menu_options": {
+          "audio": "Audio & Reciter Settings",
+          "prayer_adjustments": "Prayer Time Adjustments"
+        }
+      },
+      "audio": {
+        "title": "Audio & Reciter Settings",
+        "description": "Choose your preferred Quran reciter, Adhan sound, and target speaker for audio playback.",
+        "data": {
+          "quran_reciter": "Quran Reciter",
+          "adhan_sound": "Adhan Sound",
+          "target_media_player": "Target Media Player"
+        },
+        "data_description": {
+          "quran_reciter": "Select your preferred Quran reciter for audio playback.",
+          "adhan_sound": "Select the Adhan sound you prefer.",
+          "target_media_player": "Entity ID of the media player to play audio on (e.g., media_player.living_room_echo)."
+        }
+      },
+      "prayer_adjustments": {
+        "title": "Prayer Time Adjustments",
+        "description": "Adjust prayer times by adding or subtracting minutes. Range: -30 to +30 minutes.",
+        "data": {
+          "fajr_offset": "Fajr Adjustment (minutes)",
+          "dhuhr_offset": "Dhuhr Adjustment (minutes)",
+          "asr_offset": "Asr Adjustment (minutes)",
+          "maghrib_offset": "Maghrib Adjustment (minutes)",
+          "isha_offset": "Isha Adjustment (minutes)"
+        },
+        "data_description": {
+          "fajr_offset": "Minutes to add/subtract from Fajr time.",
+          "dhuhr_offset": "Minutes to add/subtract from Dhuhr time.",
+          "asr_offset": "Minutes to add/subtract from Asr time.",
+          "maghrib_offset": "Minutes to add/subtract from Maghrib time.",
+          "isha_offset": "Minutes to add/subtract from Isha time."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "prayer_fajr": {
+        "name": "Fajr"
+      },
+      "prayer_sunrise": {
+        "name": "Sunrise"
+      },
+      "prayer_dhuhr": {
+        "name": "Dhuhr"
+      },
+      "prayer_asr": {
+        "name": "Asr"
+      },
+      "prayer_maghrib": {
+        "name": "Maghrib"
+      },
+      "prayer_isha": {
+        "name": "Isha"
+      }
+    }
+  }
+}

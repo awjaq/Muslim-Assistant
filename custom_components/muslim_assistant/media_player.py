@@ -57,6 +57,7 @@ class MuslimAssistantMediaPlayer(MediaPlayerEntity):
     _attr_supported_features = (
         MediaPlayerEntityFeature.PLAY
         | MediaPlayerEntityFeature.STOP
+        | MediaPlayerEntityFeature.PAUSE
         | MediaPlayerEntityFeature.PLAY_MEDIA
     )
     _attr_media_content_type = MediaType.MUSIC
@@ -118,44 +119,66 @@ class MuslimAssistantMediaPlayer(MediaPlayerEntity):
         """Get the target media player entity ID from options."""
         return self._entry.options.get(CONF_TARGET_PLAYER) or None
 
+    async def _forward_to_target(
+        self, service: str, data: dict[str, Any] | None = None
+    ) -> None:
+        """Forward a media_player service call to the target speaker."""
+        target = self._get_target_entity_id()
+        if not target:
+            _LOGGER.warning(
+                "No target media player configured. "
+                "Go to Muslim Assistant > Configure > Audio Settings "
+                "and set your speaker entity (e.g., media_player.living_room_echo)"
+            )
+            return
+
+        service_data = {"entity_id": target}
+        if data:
+            service_data.update(data)
+
+        try:
+            await self.hass.services.async_call(
+                "media_player",
+                service,
+                service_data,
+                blocking=True,
+            )
+        except Exception as err:
+            _LOGGER.error("Error calling %s on %s: %s", service, target, err)
+
     async def async_play_media(
         self,
         media_type: MediaType | str,
         media_id: str,
         **kwargs: Any,
     ) -> None:
-        """Play media on the target device.
-
-        media_id should be a direct URL to an audio file (MP3).
-        Extra kwargs can include:
-          - title: display title
-          - artist: display artist name
-        """
+        """Play media on the target device."""
         self._media_content_id = media_id
-        self._media_title = kwargs.get("extra", {}).get("title", "Muslim Assistant")
-        self._media_artist = kwargs.get("extra", {}).get("artist", "")
         self._state = MediaPlayerState.PLAYING
-
-        target = self._get_target_entity_id()
-        if target:
-            # Forward to the user's chosen media player
-            await self.hass.services.async_call(
-                "media_player",
-                "play_media",
-                {
-                    "entity_id": target,
-                    "media_content_id": media_id,
-                    "media_content_type": "music",
-                },
-                blocking=True,
-            )
-        else:
-            _LOGGER.warning(
-                "No target media player configured. "
-                "Set one in Muslim Assistant options to play audio on a speaker"
-            )
-
         self.async_write_ha_state()
+
+        await self._forward_to_target(
+            "play_media",
+            {
+                "media_content_id": media_id,
+                "media_content_type": media_type
+                if isinstance(media_type, str)
+                else media_type.value,
+            },
+        )
+
+    async def async_media_play(self) -> None:
+        """Resume playback on the target device."""
+        if self._media_content_id:
+            self._state = MediaPlayerState.PLAYING
+            self.async_write_ha_state()
+            await self._forward_to_target("media_play")
+
+    async def async_media_pause(self) -> None:
+        """Pause playback on the target device."""
+        self._state = MediaPlayerState.PAUSED
+        self.async_write_ha_state()
+        await self._forward_to_target("media_pause")
 
     async def async_media_stop(self) -> None:
         """Stop the media player."""
@@ -163,26 +186,15 @@ class MuslimAssistantMediaPlayer(MediaPlayerEntity):
         self._media_title = None
         self._media_artist = None
         self._media_content_id = None
-
-        target = self._get_target_entity_id()
-        if target:
-            await self.hass.services.async_call(
-                "media_player",
-                "media_stop",
-                {"entity_id": target},
-                blocking=True,
-            )
-
         self.async_write_ha_state()
+        await self._forward_to_target("media_stop")
 
     async def async_play_adhan(self) -> None:
         """Play the Adhan audio."""
         url = self.coordinator.get_adhan_audio_url()
-        await self.async_play_media(
-            MediaType.MUSIC,
-            url,
-            extra={"title": "Adhan", "artist": "Muslim Assistant"},
-        )
+        self._media_title = "Adhan"
+        self._media_artist = "Muslim Assistant"
+        await self.async_play_media(MediaType.MUSIC, url)
 
     async def async_play_quran(
         self, surah: int, ayah: int | None = None
@@ -192,9 +204,8 @@ class MuslimAssistantMediaPlayer(MediaPlayerEntity):
         reciter = self._entry.options.get(
             CONF_QURAN_RECITER, DEFAULT_RECITER
         )
-        title = f"Surah {surah}" if ayah is None else f"Surah {surah}:{ayah}"
-        await self.async_play_media(
-            MediaType.MUSIC,
-            url,
-            extra={"title": title, "artist": reciter},
+        self._media_title = (
+            f"Surah {surah}" if ayah is None else f"Surah {surah}:{ayah}"
         )
+        self._media_artist = reciter
+        await self.async_play_media(MediaType.MUSIC, url)

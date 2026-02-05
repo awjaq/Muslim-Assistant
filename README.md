@@ -166,20 +166,27 @@ Muslim Assistant is an open-source [Home Assistant](https://www.home-assistant.i
 
 ## Configuration
 
+### No API Keys Needed
+
+Muslim Assistant uses **free, open APIs** that require **no API keys or accounts**:
+
+- **[Aladhan API](https://aladhan.com/prayer-times-api)** -- Prayer times, Qibla, Hijri calendar (free, no key)
+- **[Al Quran Cloud API](https://alquran.cloud/api)** -- Quran text, translations, audio (free, no key)
+- **[OpenStreetMap Overpass API](https://overpass-api.de/)** -- Mosque and halal restaurant finder (free, no key)
+
+You don't need to configure or enter any API keys. Everything works out of the box.
+
 ### Initial Setup
 
 1. Go to **Settings > Devices & Services**.
 2. Click **+ Add Integration**.
 3. Search for **Muslim Assistant**.
-4. Configure the following:
-   - **Name** -- Display name for the integration
-   - **Latitude / Longitude** -- Your location (auto-filled from Home Assistant config)
+4. Configure:
+   - **Name** -- Display name (default: "Muslim Assistant")
    - **Calculation Method** -- Choose from 16+ methods (see table below)
    - **School** -- Standard (Shafi/Maliki/Hanbali) or Hanafi
-   - **Adhan Sound** -- Select the Adhan audio to play at prayer times (v2.0)
-   - **Quran Reciter** -- Choose from 11 reciters for Quran audio playback (v2.0)
-   - **Target Media Player** -- Select the `media_player` entity for audio playback (v2.0)
-   - **Prayer Time Offsets** -- Adjust each prayer time from -30 to +30 minutes (v2.0)
+
+> **Location is automatic!** Muslim Assistant uses your Home Assistant's configured location (Settings > System > General). If you're using the HA mobile app, your phone's GPS is used. No need to enter latitude/longitude manually.
 
 ### Options Flow (v2.0)
 

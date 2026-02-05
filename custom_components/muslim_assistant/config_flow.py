@@ -57,18 +57,32 @@ class MuslimAssistantConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Handle the initial step."""
+        """Handle the initial step.
+
+        Location is auto-detected from Home Assistant's configured
+        location (Settings > System > General). No need for the user
+        to enter latitude/longitude manually.
+        """
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            await self.async_set_unique_id(
-                f"{user_input[CONF_LATITUDE]}_{user_input[CONF_LONGITUDE]}"
-            )
+            # Use HA's location automatically
+            lat = self.hass.config.latitude
+            lon = self.hass.config.longitude
+
+            await self.async_set_unique_id(f"{lat}_{lon}")
             self._abort_if_unique_id_configured()
+
+            # Store HA location in entry data
+            data = {
+                **user_input,
+                CONF_LATITUDE: lat,
+                CONF_LONGITUDE: lon,
+            }
 
             return self.async_create_entry(
                 title=user_input.get(CONF_NAME, "Muslim Assistant"),
-                data=user_input,
+                data=data,
             )
 
         return self.async_show_form(
@@ -78,14 +92,6 @@ class MuslimAssistantConfigFlow(ConfigFlow, domain=DOMAIN):
                     vol.Optional(
                         CONF_NAME, default="Muslim Assistant"
                     ): str,
-                    vol.Required(
-                        CONF_LATITUDE,
-                        default=self.hass.config.latitude,
-                    ): vol.Coerce(float),
-                    vol.Required(
-                        CONF_LONGITUDE,
-                        default=self.hass.config.longitude,
-                    ): vol.Coerce(float),
                     vol.Required(
                         CONF_CALC_METHOD,
                         default=DEFAULT_CALC_METHOD,

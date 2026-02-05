@@ -289,3 +289,32 @@ get_allah_names:
           min: 1
           max: 99
           mode: box
+
+play_adhan:
+  name: Play Adhan
+  description: Play the Adhan (call to prayer) on your configured media player (Alexa, Google Home, Sonos, etc.).
+
+play_quran:
+  name: Play Quran
+  description: Play Quran recitation on your configured media player. Choose a surah or specific ayah.
+  fields:
+    surah_number:
+      name: Surah Number
+      description: The number of the Surah to play (1-114).
+      required: true
+      example: 1
+      selector:
+        number:
+          min: 1
+          max: 114
+          mode: box
+    ayah_number:
+      name: Ayah Number
+      description: Optional specific ayah number. Leave empty to play the entire surah.
+      required: false
+      example: 1
+      selector:
+        number:
+          min: 1
+          max: 286
+          mode: box

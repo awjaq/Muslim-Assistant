@@ -24,6 +24,50 @@
       "already_configured": "هذا الموقع مُعد بالفعل."
     }
   },
+  "options": {
+    "step": {
+      "init": {
+        "title": "إعدادات المساعد الإسلامي",
+        "description": "قم بتعديل إعدادات المساعد الإسلامي.",
+        "menu_options": {
+          "audio": "إعدادات الصوت والقارئ",
+          "prayer_adjustments": "تعديل أوقات الصلاة"
+        }
+      },
+      "audio": {
+        "title": "إعدادات الصوت والقارئ",
+        "description": "اختر القارئ المفضل وصوت الأذان ومكبر الصوت المستهدف.",
+        "data": {
+          "quran_reciter": "قارئ القرآن",
+          "adhan_sound": "صوت الأذان",
+          "target_media_player": "مشغل الوسائط المستهدف"
+        },
+        "data_description": {
+          "quran_reciter": "اختر قارئ القرآن المفضل لتشغيل الصوت.",
+          "adhan_sound": "اختر صوت الأذان المفضل.",
+          "target_media_player": "معرف مشغل الوسائط لتشغيل الصوت عليه (مثال: media_player.living_room_echo)."
+        }
+      },
+      "prayer_adjustments": {
+        "title": "تعديل أوقات الصلاة",
+        "description": "قم بتعديل أوقات الصلاة بإضافة أو طرح دقائق. المدى: -30 إلى +30 دقيقة.",
+        "data": {
+          "fajr_offset": "تعديل الفجر (دقائق)",
+          "dhuhr_offset": "تعديل الظهر (دقائق)",
+          "asr_offset": "تعديل العصر (دقائق)",
+          "maghrib_offset": "تعديل المغرب (دقائق)",
+          "isha_offset": "تعديل العشاء (دقائق)"
+        },
+        "data_description": {
+          "fajr_offset": "دقائق لإضافتها أو طرحها من وقت الفجر.",
+          "dhuhr_offset": "دقائق لإضافتها أو طرحها من وقت الظهر.",
+          "asr_offset": "دقائق لإضافتها أو طرحها من وقت العصر.",
+          "maghrib_offset": "دقائق لإضافتها أو طرحها من وقت المغرب.",
+          "isha_offset": "دقائق لإضافتها أو طرحها من وقت العشاء."
+        }
+      }
+    }
+  },
   "entity": {
     "sensor": {
       "prayer_fajr": {

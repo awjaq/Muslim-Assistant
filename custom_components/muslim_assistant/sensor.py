@@ -16,7 +16,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, MAKKAH_LIVE_STREAM_URL, PRAYERS
+from .const import DOMAIN, MAKKAH_LIVE_STREAM_URL, PRAYERS, VERSION
 from .coordinator import MuslimAssistantCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -32,44 +32,20 @@ async def async_setup_entry(
 
     entities: list[SensorEntity] = []
 
-    # Individual prayer time sensors
     for prayer in PRAYERS:
         entities.append(PrayerTimeSensor(coordinator, entry, prayer))
 
-    # Next prayer sensor
     entities.append(NextPrayerSensor(coordinator, entry))
-
-    # Qibla direction sensor
     entities.append(QiblaSensor(coordinator, entry))
-
-    # Hijri date sensor
     entities.append(HijriDateSensor(coordinator, entry))
-
-    # Daily Dua sensor
     entities.append(DailyDuaSensor(coordinator, entry))
-
-    # Quran Verse of the Day sensor
     entities.append(QuranVerseSensor(coordinator, entry))
-
-    # Ramadan tracker sensor
     entities.append(RamadanSensor(coordinator, entry))
-
-    # Tasbih counter sensor
     entities.append(TasbihCounterSensor(coordinator, entry))
-
-    # 99 Names of Allah sensor
     entities.append(AllahNamesSensor(coordinator, entry))
-
-    # Islamic Quote sensor
     entities.append(IslamicQuoteSensor(coordinator, entry))
-
-    # Nearby Mosques sensor
     entities.append(MosqueFinderSensor(coordinator, entry))
-
-    # Halal Food Finder sensor
     entities.append(HalalFinderSensor(coordinator, entry))
-
-    # Makkah Live sensor
     entities.append(MakkahLiveSensor(coordinator, entry))
 
     async_add_entities(entities)
@@ -93,7 +69,7 @@ class MuslimAssistantEntity(CoordinatorEntity):
             "name": "Muslim Assistant",
             "manufacturer": "Muslim Assistant Community",
             "model": "Islamic Companion",
-            "sw_version": "1.0.0",
+            "sw_version": VERSION,
         }
 
 
@@ -117,18 +93,17 @@ class PrayerTimeSensor(MuslimAssistantEntity, SensorEntity):
 
     @property
     def native_value(self) -> str | None:
-        """Return the prayer time."""
+        """Return the adjusted prayer time."""
         if self.coordinator.data:
             timings = self.coordinator.data.get("prayer_times", {})
             time_str = timings.get(self._prayer, "")
-            # Strip timezone info
-            return time_str.split(" ")[0] if time_str else None
+            return time_str if time_str else None
         return None
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return additional attributes."""
-        attrs = {
+        attrs: dict[str, Any] = {
             "prayer": self._prayer,
             "calculation_method": self.coordinator.calc_method,
             "school": self.coordinator.school,
@@ -136,6 +111,11 @@ class PrayerTimeSensor(MuslimAssistantEntity, SensorEntity):
         if self.coordinator.data:
             meta = self.coordinator.data.get("meta", {})
             attrs["method_name"] = meta.get("method", {}).get("name", "")
+            raw = self.coordinator.data.get("prayer_times_raw", {})
+            attrs["raw_time"] = raw.get(self._prayer, "")
+            offset = self.coordinator._get_prayer_offset(self._prayer)
+            if offset:
+                attrs["offset_minutes"] = offset
         return attrs
 
 
@@ -171,12 +151,9 @@ class NextPrayerSensor(MuslimAssistantEntity, SensorEntity):
                 "time": next_prayer.get("time", ""),
                 "time_remaining": next_prayer.get("time_remaining", ""),
                 "timestamp": next_prayer.get("timestamp", ""),
-                "all_prayer_times": {
-                    prayer: self.coordinator.data.get("prayer_times", {})
-                    .get(prayer, "")
-                    .split(" ")[0]
-                    for prayer in PRAYERS
-                },
+                "all_prayer_times": self.coordinator.data.get(
+                    "prayer_times", {}
+                ),
             }
         return {}
 
@@ -214,7 +191,6 @@ class QiblaSensor(MuslimAssistantEntity, SensorEntity):
         if self.coordinator.data:
             qibla = self.coordinator.data.get("qibla", {})
             direction = qibla.get("direction", 0)
-            # Convert degrees to cardinal direction
             cardinal = self._degrees_to_cardinal(float(direction))
             return {
                 "cardinal_direction": cardinal,
@@ -222,6 +198,10 @@ class QiblaSensor(MuslimAssistantEntity, SensorEntity):
                 "longitude": self.coordinator.longitude,
                 "kaaba_latitude": 21.4225,
                 "kaaba_longitude": 39.8262,
+                "instructions": (
+                    f"Face {cardinal} ({round(float(direction), 1)}\u00b0) "
+                    f"from your location to face the Qibla"
+                ),
             }
         return {}
 
@@ -266,7 +246,9 @@ class HijriDateSensor(MuslimAssistantEntity, SensorEntity):
         """Return additional attributes."""
         if self.coordinator.data:
             hijri = self.coordinator.data.get("hijri_date", {})
-            gregorian = self.coordinator.data.get("date", {}).get("gregorian", {})
+            gregorian = self.coordinator.data.get("date", {}).get(
+                "gregorian", {}
+            )
             return {
                 "hijri_day": hijri.get("day", ""),
                 "hijri_month": hijri.get("month", ""),
@@ -317,7 +299,9 @@ class DailyDuaSensor(MuslimAssistantEntity, SensorEntity):
                 "translation": current.get("translation", ""),
                 "daily_dua_name": daily.get("name", ""),
                 "daily_dua_arabic": daily.get("arabic", ""),
-                "daily_dua_transliteration": daily.get("transliteration", ""),
+                "daily_dua_transliteration": daily.get(
+                    "transliteration", ""
+                ),
                 "daily_dua_translation": daily.get("translation", ""),
             }
         return {}
@@ -344,7 +328,11 @@ class QuranVerseSensor(MuslimAssistantEntity, SensorEntity):
         if self.coordinator.data:
             verse = self.coordinator.data.get("quran_verse", {})
             if verse:
-                return f"{verse.get('surah_name', '')} ({verse.get('surah_number', '')}:{verse.get('ayah_number', '')})"
+                return (
+                    f"{verse.get('surah_name', '')} "
+                    f"({verse.get('surah_number', '')}:"
+                    f"{verse.get('ayah_number', '')})"
+                )
         return None
 
     @property
@@ -360,6 +348,7 @@ class QuranVerseSensor(MuslimAssistantEntity, SensorEntity):
                 "text_arabic": verse.get("text_arabic", ""),
                 "text_translation": verse.get("text_translation", ""),
                 "edition": verse.get("edition", ""),
+                "audio_url": verse.get("audio_url", ""),
             }
         return {}
 
@@ -395,18 +384,15 @@ class RamadanSensor(MuslimAssistantEntity, SensorEntity):
         if self.coordinator.data:
             ramadan = self.coordinator.data.get("ramadan", {})
             timings = self.coordinator.data.get("prayer_times", {})
-            attrs = {
+            attrs: dict[str, Any] = {
                 "is_ramadan": ramadan.get("is_ramadan", False),
                 "ramadan_day": ramadan.get("ramadan_day", 0),
                 "days_remaining": ramadan.get("days_remaining", 0),
                 "current_hijri_month": ramadan.get("month_name", ""),
             }
             if ramadan.get("is_ramadan"):
-                # Suhoor ends at Fajr, Iftar at Maghrib
-                fajr = timings.get("Fajr", "").split(" ")[0]
-                maghrib = timings.get("Maghrib", "").split(" ")[0]
-                attrs["suhoor_ends"] = fajr
-                attrs["iftar_time"] = maghrib
+                attrs["suhoor_ends"] = timings.get("Fajr", "")
+                attrs["iftar_time"] = timings.get("Maghrib", "")
             return attrs
         return {}
 
@@ -442,8 +428,14 @@ class TasbihCounterSensor(MuslimAssistantEntity, SensorEntity):
             "count": self._count,
             "target": self._target,
             "dhikr": self._dhikr,
-            "completed_sets": self._count // self._target if self._target else 0,
-            "remaining": max(0, self._target - (self._count % self._target)) if self._target else 0,
+            "completed_sets": (
+                self._count // self._target if self._target else 0
+            ),
+            "remaining": (
+                max(0, self._target - (self._count % self._target))
+                if self._target
+                else 0
+            ),
         }
 
     def increment(self, amount: int = 1) -> None:
@@ -525,7 +517,6 @@ class IslamicQuoteSensor(MuslimAssistantEntity, SensorEntity):
         if self.coordinator.data:
             quote_data = self.coordinator.data.get("islamic_quote", {})
             quote = quote_data.get("quote", "")
-            # HA sensor state has 255 char limit, truncate if needed
             return quote[:255] if quote else None
         return None
 
@@ -574,7 +565,9 @@ class MosqueFinderSensor(MuslimAssistantEntity, SensorEntity):
             if mosques:
                 nearest = mosques[0]
                 attrs["nearest_name"] = nearest.get("name", "")
-                attrs["nearest_distance_km"] = nearest.get("distance_km", 0)
+                attrs["nearest_distance_km"] = nearest.get(
+                    "distance_km", 0
+                )
                 attrs["nearest_latitude"] = nearest.get("latitude", 0)
                 attrs["nearest_longitude"] = nearest.get("longitude", 0)
             return attrs
@@ -613,7 +606,9 @@ class HalalFinderSensor(MuslimAssistantEntity, SensorEntity):
             if halal:
                 nearest = halal[0]
                 attrs["nearest_name"] = nearest.get("name", "")
-                attrs["nearest_distance_km"] = nearest.get("distance_km", 0)
+                attrs["nearest_distance_km"] = nearest.get(
+                    "distance_km", 0
+                )
                 attrs["nearest_cuisine"] = nearest.get("cuisine", "")
                 attrs["nearest_latitude"] = nearest.get("latitude", 0)
                 attrs["nearest_longitude"] = nearest.get("longitude", 0)

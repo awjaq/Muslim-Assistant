@@ -602,6 +602,47 @@ automation:
 
 ---
 
+## Dashboard
+
+Muslim Assistant includes a pre-built Lovelace dashboard. To add it:
+
+### Option 1: Import YAML Dashboard
+
+1. Go to **Settings > Dashboards**.
+2. Click **+ Add Dashboard**.
+3. Choose **New dashboard from scratch**.
+4. Give it a name like **Muslim Assistant** and set the icon to `mdi:mosque`.
+5. Open the new dashboard, click the **three dots** menu > **Edit Dashboard**.
+6. Click the **three dots** again > **Raw configuration editor**.
+7. Paste the contents of `dashboard/muslim_assistant_dashboard.yaml` from this repository.
+8. Click **Save**.
+
+### Option 2: Add to Existing Dashboard
+
+You can also add individual cards from the dashboard YAML to any existing dashboard.
+
+---
+
+## Integration Icon (Brand Logo)
+
+The icon on the **Settings > Integrations** page in Home Assistant comes from the [home-assistant/brands](https://github.com/home-assistant/brands) repository, not from local files. To get the Muslim Assistant icon showing:
+
+### Submit to HA Brands Repository
+
+1. Fork [home-assistant/brands](https://github.com/home-assistant/brands).
+2. Create a folder: `custom_integrations/muslim_assistant/`
+3. Copy the PNG files from the `brand/` folder in this repository:
+   - `icon.png` (256x256)
+   - `icon@2x.png` (512x512)
+4. Submit a Pull Request.
+5. Once merged, the icon will appear automatically in Home Assistant.
+
+The `brand/` folder in this repository contains the ready-to-submit PNG files.
+
+> **Note:** Entity icons (prayer times, Quran, Qibla, etc.) already display correctly using Material Design Icons in the HA UI. The brand logo only affects the integration card on the Settings > Integrations page.
+
+---
+
 ## API Credits
 
 This integration uses the following free APIs:

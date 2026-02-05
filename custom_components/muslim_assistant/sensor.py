@@ -16,7 +16,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, PRAYERS
+from .const import DOMAIN, MAKKAH_LIVE_STREAM_URL, PRAYERS
 from .coordinator import MuslimAssistantCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -56,6 +56,21 @@ async def async_setup_entry(
 
     # Tasbih counter sensor
     entities.append(TasbihCounterSensor(coordinator, entry))
+
+    # 99 Names of Allah sensor
+    entities.append(AllahNamesSensor(coordinator, entry))
+
+    # Islamic Quote sensor
+    entities.append(IslamicQuoteSensor(coordinator, entry))
+
+    # Nearby Mosques sensor
+    entities.append(MosqueFinderSensor(coordinator, entry))
+
+    # Halal Food Finder sensor
+    entities.append(HalalFinderSensor(coordinator, entry))
+
+    # Makkah Live sensor
+    entities.append(MakkahLiveSensor(coordinator, entry))
 
     async_add_entities(entities)
 
@@ -450,3 +465,187 @@ class TasbihCounterSensor(MuslimAssistantEntity, SensorEntity):
         """Set the dhikr text."""
         self._dhikr = dhikr
         self.async_write_ha_state()
+
+
+class AllahNamesSensor(MuslimAssistantEntity, SensorEntity):
+    """Sensor for the 99 Names of Allah (Asma ul Husna)."""
+
+    _attr_icon = "mdi:star-crescent"
+    _attr_name = "Name of Allah"
+
+    def __init__(
+        self,
+        coordinator: MuslimAssistantCoordinator,
+        entry: ConfigEntry,
+    ) -> None:
+        """Initialize the 99 Names sensor."""
+        super().__init__(coordinator, entry)
+        self._attr_unique_id = f"{entry.entry_id}_allah_name"
+
+    @property
+    def native_value(self) -> str | None:
+        """Return the name of Allah for today."""
+        if self.coordinator.data:
+            name_data = self.coordinator.data.get("allah_name", {})
+            return name_data.get("name")
+        return None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the name details."""
+        if self.coordinator.data:
+            name_data = self.coordinator.data.get("allah_name", {})
+            return {
+                "number": name_data.get("number", 0),
+                "arabic": name_data.get("arabic", ""),
+                "meaning": name_data.get("meaning", ""),
+                "total_names": 99,
+            }
+        return {}
+
+
+class IslamicQuoteSensor(MuslimAssistantEntity, SensorEntity):
+    """Sensor for daily Islamic inspirational quotes."""
+
+    _attr_icon = "mdi:format-quote-close"
+    _attr_name = "Islamic Quote"
+
+    def __init__(
+        self,
+        coordinator: MuslimAssistantCoordinator,
+        entry: ConfigEntry,
+    ) -> None:
+        """Initialize the Islamic quote sensor."""
+        super().__init__(coordinator, entry)
+        self._attr_unique_id = f"{entry.entry_id}_islamic_quote"
+
+    @property
+    def native_value(self) -> str | None:
+        """Return the quote text."""
+        if self.coordinator.data:
+            quote_data = self.coordinator.data.get("islamic_quote", {})
+            quote = quote_data.get("quote", "")
+            # HA sensor state has 255 char limit, truncate if needed
+            return quote[:255] if quote else None
+        return None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the quote details."""
+        if self.coordinator.data:
+            quote_data = self.coordinator.data.get("islamic_quote", {})
+            return {
+                "quote_full": quote_data.get("quote", ""),
+                "source": quote_data.get("source", ""),
+                "arabic": quote_data.get("arabic", ""),
+            }
+        return {}
+
+
+class MosqueFinderSensor(MuslimAssistantEntity, SensorEntity):
+    """Sensor for nearby mosques."""
+
+    _attr_icon = "mdi:mosque"
+    _attr_name = "Nearby Mosques"
+
+    def __init__(
+        self,
+        coordinator: MuslimAssistantCoordinator,
+        entry: ConfigEntry,
+    ) -> None:
+        """Initialize the mosque finder sensor."""
+        super().__init__(coordinator, entry)
+        self._attr_unique_id = f"{entry.entry_id}_nearby_mosques"
+
+    @property
+    def native_value(self) -> int | None:
+        """Return the number of nearby mosques found."""
+        if self.coordinator.data:
+            mosques = self.coordinator.data.get("nearby_mosques", [])
+            return len(mosques)
+        return None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the list of nearby mosques."""
+        if self.coordinator.data:
+            mosques = self.coordinator.data.get("nearby_mosques", [])
+            attrs: dict[str, Any] = {"mosques": mosques}
+            if mosques:
+                nearest = mosques[0]
+                attrs["nearest_name"] = nearest.get("name", "")
+                attrs["nearest_distance_km"] = nearest.get("distance_km", 0)
+                attrs["nearest_latitude"] = nearest.get("latitude", 0)
+                attrs["nearest_longitude"] = nearest.get("longitude", 0)
+            return attrs
+        return {}
+
+
+class HalalFinderSensor(MuslimAssistantEntity, SensorEntity):
+    """Sensor for nearby halal restaurants."""
+
+    _attr_icon = "mdi:food-halal"
+    _attr_name = "Halal Restaurants"
+
+    def __init__(
+        self,
+        coordinator: MuslimAssistantCoordinator,
+        entry: ConfigEntry,
+    ) -> None:
+        """Initialize the halal finder sensor."""
+        super().__init__(coordinator, entry)
+        self._attr_unique_id = f"{entry.entry_id}_halal_restaurants"
+
+    @property
+    def native_value(self) -> int | None:
+        """Return the number of nearby halal restaurants."""
+        if self.coordinator.data:
+            halal = self.coordinator.data.get("nearby_halal", [])
+            return len(halal)
+        return None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the list of nearby halal restaurants."""
+        if self.coordinator.data:
+            halal = self.coordinator.data.get("nearby_halal", [])
+            attrs: dict[str, Any] = {"restaurants": halal}
+            if halal:
+                nearest = halal[0]
+                attrs["nearest_name"] = nearest.get("name", "")
+                attrs["nearest_distance_km"] = nearest.get("distance_km", 0)
+                attrs["nearest_cuisine"] = nearest.get("cuisine", "")
+                attrs["nearest_latitude"] = nearest.get("latitude", 0)
+                attrs["nearest_longitude"] = nearest.get("longitude", 0)
+            return attrs
+        return {}
+
+
+class MakkahLiveSensor(MuslimAssistantEntity, SensorEntity):
+    """Sensor for Makkah Live stream link."""
+
+    _attr_icon = "mdi:video"
+    _attr_name = "Makkah Live"
+
+    def __init__(
+        self,
+        coordinator: MuslimAssistantCoordinator,
+        entry: ConfigEntry,
+    ) -> None:
+        """Initialize the Makkah Live sensor."""
+        super().__init__(coordinator, entry)
+        self._attr_unique_id = f"{entry.entry_id}_makkah_live"
+
+    @property
+    def native_value(self) -> str:
+        """Return the Makkah Live status."""
+        return "Available"
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return the stream details."""
+        return {
+            "stream_url": MAKKAH_LIVE_STREAM_URL,
+            "description": "Live stream from Masjid al-Haram, Makkah",
+            "location": "Makkah, Saudi Arabia",
+        }

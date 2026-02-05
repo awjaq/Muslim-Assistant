@@ -1,16 +1,25 @@
 ## Muslim Assistant for Home Assistant
 
-A comprehensive Islamic companion integration for Home Assistant, inspired by Muslim Pro.
+A comprehensive Islamic companion integration for Home Assistant, inspired by Muslim Pro. All features of the popular Muslim Pro app, now in your smart home.
 
-### Features
+### Features (18 Sensors + 14 Services)
 
-- **Prayer Times** - Accurate prayer times with 16+ calculation methods
-- **Qibla Direction** - Compass direction to the Kaaba
+- **Prayer Times & Adhan** - Accurate prayer times with 16+ calculation methods and Adhan notifications
+- **Qibla Direction** - Compass bearing to the Kaaba in Makkah
+- **Holy Quran** - Verse of the day, fetch any surah or ayah with Arabic + English
 - **Hijri Calendar** - Islamic calendar date with Arabic names
-- **Quran** - Random verse of the day with Arabic text and translation
-- **Daily Duas** - Context-aware supplications throughout the day
-- **Tasbih Counter** - Digital dhikr counter with targets
+- **99 Names of Allah** - Daily rotating Asma ul Husna with meanings
+- **Daily Duas & Dhikr** - 20+ context-aware supplications throughout the day
+- **Inspirational Quotes** - 30 curated quotes from Quran and Hadiths
+- **Tasbih Counter** - Digital dhikr counter with customizable targets
 - **Ramadan Tracker** - Fasting day counter with Suhoor/Iftar times
+- **Mosque Finder** - Find nearby mosques within 5km
+- **Halal Food Finder** - Find nearby halal restaurants within 5km
+- **Zakat Calculator** - Calculate your annual Zakat obligation
+- **Hajj & Umrah Guides** - Step-by-step guides with tips
+- **Islamic Greeting Cards** - 12 occasion templates (Eid, Ramadan, Jummah, Wedding, etc.)
+- **Makkah Live** - Live stream link from Masjid al-Haram
+- **Prayer Requests** - Submit and track prayer requests
 
 ### Installation
 

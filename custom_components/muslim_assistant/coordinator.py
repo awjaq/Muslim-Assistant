@@ -16,6 +16,9 @@ from .const import (
     ALADHAN_API_BASE,
     CALC_METHOD_MAP,
     DAILY_DUAS,
+    ISLAMIC_QUOTES,
+    NAMES_OF_ALLAH,
+    OVERPASS_API,
     PRAYERS,
     QURAN_API_BASE,
     SCHOOLS,
@@ -95,6 +98,20 @@ class MuslimAssistantCoordinator(DataUpdateCoordinator):
                 # Fetch random Quran verse
                 quran_data = await self._fetch_random_ayah(session)
                 data["quran_verse"] = quran_data
+
+                # 99 Names of Allah (daily rotation)
+                data["allah_name"] = self._get_daily_allah_name()
+
+                # Islamic inspirational quote
+                data["islamic_quote"] = self._get_daily_quote()
+
+                # Nearby mosques
+                mosques = await self._fetch_nearby_mosques(session)
+                data["nearby_mosques"] = mosques
+
+                # Nearby halal restaurants
+                halal = await self._fetch_nearby_halal(session)
+                data["nearby_halal"] = halal
 
                 return data
 
@@ -260,6 +277,136 @@ class MuslimAssistantCoordinator(DataUpdateCoordinator):
             "current": dua,
             "daily": rotating_dua,
         }
+
+    def _get_daily_allah_name(self) -> dict[str, Any]:
+        """Get the 99 Names of Allah entry for today."""
+        now = datetime.now()
+        day_of_year = now.timetuple().tm_yday
+        index = day_of_year % len(NAMES_OF_ALLAH)
+        name = NAMES_OF_ALLAH[index]
+        return {
+            "number": name["number"],
+            "name": name["name"],
+            "arabic": name["arabic"],
+            "meaning": name["meaning"],
+        }
+
+    def _get_daily_quote(self) -> dict[str, Any]:
+        """Get a daily Islamic inspirational quote."""
+        now = datetime.now()
+        day_of_year = now.timetuple().tm_yday
+        index = day_of_year % len(ISLAMIC_QUOTES)
+        quote = ISLAMIC_QUOTES[index]
+        return {
+            "quote": quote["quote"],
+            "source": quote["source"],
+            "arabic": quote["arabic"],
+        }
+
+    async def _fetch_nearby_mosques(
+        self, session: aiohttp.ClientSession
+    ) -> list[dict[str, Any]]:
+        """Fetch nearby mosques using Overpass API."""
+        try:
+            query = f"""
+            [out:json][timeout:10];
+            (
+              node["amenity"="place_of_worship"]["religion"="muslim"](around:5000,{self.latitude},{self.longitude});
+              way["amenity"="place_of_worship"]["religion"="muslim"](around:5000,{self.latitude},{self.longitude});
+            );
+            out center 10;
+            """
+            async with session.post(
+                OVERPASS_API, data={"data": query}, timeout=aiohttp.ClientTimeout(total=15)
+            ) as resp:
+                if resp.status == 200:
+                    result = await resp.json()
+                    mosques = []
+                    for element in result.get("elements", [])[:10]:
+                        tags = element.get("tags", {})
+                        lat = element.get("lat") or element.get("center", {}).get("lat", 0)
+                        lon = element.get("lon") or element.get("center", {}).get("lon", 0)
+                        if lat and lon:
+                            distance = self._haversine_distance(
+                                self.latitude, self.longitude, lat, lon
+                            )
+                            mosques.append({
+                                "name": tags.get("name", "Unknown Mosque"),
+                                "latitude": lat,
+                                "longitude": lon,
+                                "distance_km": round(distance, 2),
+                                "address": tags.get("addr:street", ""),
+                                "city": tags.get("addr:city", ""),
+                            })
+                    mosques.sort(key=lambda x: x["distance_km"])
+                    return mosques
+                return []
+        except Exception:
+            _LOGGER.debug("Failed to fetch nearby mosques")
+            return []
+
+    async def _fetch_nearby_halal(
+        self, session: aiohttp.ClientSession
+    ) -> list[dict[str, Any]]:
+        """Fetch nearby halal restaurants using Overpass API."""
+        try:
+            query = f"""
+            [out:json][timeout:10];
+            (
+              node["cuisine"~"halal|muslim"](around:5000,{self.latitude},{self.longitude});
+              node["diet:halal"="yes"](around:5000,{self.latitude},{self.longitude});
+              node["halal"="yes"](around:5000,{self.latitude},{self.longitude});
+              way["cuisine"~"halal|muslim"](around:5000,{self.latitude},{self.longitude});
+              way["diet:halal"="yes"](around:5000,{self.latitude},{self.longitude});
+            );
+            out center 10;
+            """
+            async with session.post(
+                OVERPASS_API, data={"data": query}, timeout=aiohttp.ClientTimeout(total=15)
+            ) as resp:
+                if resp.status == 200:
+                    result = await resp.json()
+                    restaurants = []
+                    for element in result.get("elements", [])[:10]:
+                        tags = element.get("tags", {})
+                        lat = element.get("lat") or element.get("center", {}).get("lat", 0)
+                        lon = element.get("lon") or element.get("center", {}).get("lon", 0)
+                        if lat and lon:
+                            distance = self._haversine_distance(
+                                self.latitude, self.longitude, lat, lon
+                            )
+                            restaurants.append({
+                                "name": tags.get("name", "Unknown Restaurant"),
+                                "latitude": lat,
+                                "longitude": lon,
+                                "distance_km": round(distance, 2),
+                                "cuisine": tags.get("cuisine", "halal"),
+                                "address": tags.get("addr:street", ""),
+                                "city": tags.get("addr:city", ""),
+                                "phone": tags.get("phone", ""),
+                                "website": tags.get("website", ""),
+                            })
+                    restaurants.sort(key=lambda x: x["distance_km"])
+                    return restaurants
+                return []
+        except Exception:
+            _LOGGER.debug("Failed to fetch nearby halal restaurants")
+            return []
+
+    @staticmethod
+    def _haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+        """Calculate the great-circle distance between two points on Earth."""
+        R = 6371  # Earth's radius in km
+        dlat = math.radians(lat2 - lat1)
+        dlon = math.radians(lon2 - lon1)
+        a = (
+            math.sin(dlat / 2) ** 2
+            + math.cos(math.radians(lat1))
+            * math.cos(math.radians(lat2))
+            * math.sin(dlon / 2) ** 2
+        )
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        return R * c
 
     async def async_get_surah(self, surah_number: int) -> dict[str, Any]:
         """Fetch a specific surah from the Quran API."""

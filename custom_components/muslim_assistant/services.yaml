@@ -96,3 +96,196 @@ get_dua:
       example: "morning"
       selector:
         text:
+
+calculate_zakat:
+  name: Calculate Zakat
+  description: Calculate your annual Zakat obligation based on your assets and savings.
+  fields:
+    savings:
+      name: Cash Savings
+      description: Total cash savings in bank accounts.
+      required: true
+      example: 10000
+      selector:
+        number:
+          min: 0
+          mode: box
+          unit_of_measurement: currency
+    gold_value:
+      name: Gold Value
+      description: Current market value of gold you own.
+      required: false
+      default: 0
+      example: 5000
+      selector:
+        number:
+          min: 0
+          mode: box
+    silver_value:
+      name: Silver Value
+      description: Current market value of silver you own.
+      required: false
+      default: 0
+      example: 1000
+      selector:
+        number:
+          min: 0
+          mode: box
+    business_assets:
+      name: Business Assets
+      description: Value of business merchandise and assets for trade.
+      required: false
+      default: 0
+      example: 0
+      selector:
+        number:
+          min: 0
+          mode: box
+    stocks_investments:
+      name: Stocks & Investments
+      description: Value of stocks, mutual funds, and other investments.
+      required: false
+      default: 0
+      example: 0
+      selector:
+        number:
+          min: 0
+          mode: box
+    rental_income:
+      name: Rental Income
+      description: Annual rental income received.
+      required: false
+      default: 0
+      example: 0
+      selector:
+        number:
+          min: 0
+          mode: box
+    other_income:
+      name: Other Income
+      description: Any other Zakatable income or assets.
+      required: false
+      default: 0
+      example: 0
+      selector:
+        number:
+          min: 0
+          mode: box
+    debts:
+      name: Debts
+      description: Total outstanding debts to be deducted.
+      required: false
+      default: 0
+      example: 2000
+      selector:
+        number:
+          min: 0
+          mode: box
+    currency:
+      name: Currency
+      description: Currency code for the amounts.
+      required: false
+      default: "USD"
+      example: "USD"
+      selector:
+        text:
+
+get_hajj_guide:
+  name: Get Hajj Guide
+  description: Get a comprehensive step-by-step guide for performing Hajj.
+
+get_umrah_guide:
+  name: Get Umrah Guide
+  description: Get a step-by-step guide for performing Umrah.
+
+send_greeting:
+  name: Send Islamic Greeting
+  description: Generate an Islamic greeting card for a specific occasion.
+  fields:
+    occasion:
+      name: Occasion
+      description: The occasion for the greeting (e.g., Eid ul-Fitr, Ramadan, Jummah, Wedding, New Baby).
+      required: true
+      example: "Eid ul-Fitr"
+      selector:
+        select:
+          options:
+            - "Eid ul-Fitr"
+            - "Eid ul-Adha"
+            - "Ramadan"
+            - "Jummah (Friday)"
+            - "New Islamic Year"
+            - "Mawlid an-Nabi"
+            - "Isra and Mi'raj"
+            - "Laylat al-Qadr"
+            - "Wedding"
+            - "New Baby"
+            - "General"
+            - "Condolence"
+    recipient_name:
+      name: Recipient Name
+      description: Optional name of the greeting recipient.
+      required: false
+      example: "Ahmad"
+      selector:
+        text:
+    custom_message:
+      name: Custom Message
+      description: Optional custom message to append to the greeting.
+      required: false
+      selector:
+        text:
+          multiline: true
+
+prayer_request:
+  name: Prayer Request
+  description: Submit a prayer request to the community.
+  fields:
+    prayer_text:
+      name: Prayer Text
+      description: The prayer or dua you are requesting.
+      required: true
+      example: "Please make dua for my family's health."
+      selector:
+        text:
+          multiline: true
+    requester_name:
+      name: Requester Name
+      description: Your name (optional, defaults to Anonymous).
+      required: false
+      default: "Anonymous"
+      example: "Ahmad"
+      selector:
+        text:
+    category:
+      name: Category
+      description: Category of the prayer request.
+      required: false
+      default: "general"
+      example: "health"
+      selector:
+        select:
+          options:
+            - "general"
+            - "health"
+            - "guidance"
+            - "forgiveness"
+            - "family"
+            - "success"
+            - "travel"
+            - "deceased"
+
+get_allah_names:
+  name: Get Names of Allah
+  description: Get one or all of the 99 Names of Allah (Asma ul Husna).
+  fields:
+    number:
+      name: Name Number
+      description: Specific name number (1-99). Leave empty for all names.
+      required: false
+      example: 1
+      selector:
+        number:
+          min: 1
+          max: 99
+          mode: box

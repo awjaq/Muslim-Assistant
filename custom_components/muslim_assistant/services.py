@@ -21,6 +21,12 @@ SERVICE_TASBIH_RESET = "tasbih_reset"
 SERVICE_TASBIH_SET_TARGET = "tasbih_set_target"
 SERVICE_TASBIH_SET_DHIKR = "tasbih_set_dhikr"
 SERVICE_GET_DUA = "get_dua"
+SERVICE_CALCULATE_ZAKAT = "calculate_zakat"
+SERVICE_GET_HAJJ_GUIDE = "get_hajj_guide"
+SERVICE_GET_UMRAH_GUIDE = "get_umrah_guide"
+SERVICE_SEND_GREETING = "send_greeting"
+SERVICE_PRAYER_REQUEST = "prayer_request"
+SERVICE_GET_ALLAH_NAMES = "get_allah_names"
 
 SCHEMA_GET_SURAH = vol.Schema(
     {
@@ -66,6 +72,44 @@ SCHEMA_TASBIH_SET_DHIKR = vol.Schema(
 SCHEMA_GET_DUA = vol.Schema(
     {
         vol.Optional("category"): str,
+    }
+)
+
+SCHEMA_CALCULATE_ZAKAT = vol.Schema(
+    {
+        vol.Required("savings"): vol.Coerce(float),
+        vol.Optional("gold_value", default=0): vol.Coerce(float),
+        vol.Optional("silver_value", default=0): vol.Coerce(float),
+        vol.Optional("business_assets", default=0): vol.Coerce(float),
+        vol.Optional("stocks_investments", default=0): vol.Coerce(float),
+        vol.Optional("rental_income", default=0): vol.Coerce(float),
+        vol.Optional("other_income", default=0): vol.Coerce(float),
+        vol.Optional("debts", default=0): vol.Coerce(float),
+        vol.Optional("currency", default="USD"): str,
+    }
+)
+
+SCHEMA_SEND_GREETING = vol.Schema(
+    {
+        vol.Required("occasion"): str,
+        vol.Optional("recipient_name"): str,
+        vol.Optional("custom_message"): str,
+    }
+)
+
+SCHEMA_PRAYER_REQUEST = vol.Schema(
+    {
+        vol.Required("prayer_text"): str,
+        vol.Optional("requester_name", default="Anonymous"): str,
+        vol.Optional("category", default="general"): str,
+    }
+)
+
+SCHEMA_GET_ALLAH_NAMES = vol.Schema(
+    {
+        vol.Optional("number"): vol.All(
+            vol.Coerce(int), vol.Range(min=1, max=99)
+        ),
     }
 )
 
@@ -191,6 +235,134 @@ async def async_register_services(hass: HomeAssistant) -> None:
             {"duas": duas},
         )
 
+    async def handle_calculate_zakat(call: ServiceCall) -> None:
+        """Handle calculate_zakat service call."""
+        from .const import ZAKAT_NISAB_GOLD_GRAMS, ZAKAT_RATE
+
+        savings = call.data["savings"]
+        gold_value = call.data.get("gold_value", 0)
+        silver_value = call.data.get("silver_value", 0)
+        business_assets = call.data.get("business_assets", 0)
+        stocks = call.data.get("stocks_investments", 0)
+        rental = call.data.get("rental_income", 0)
+        other = call.data.get("other_income", 0)
+        debts = call.data.get("debts", 0)
+        currency = call.data.get("currency", "USD")
+
+        total_assets = (
+            savings + gold_value + silver_value + business_assets
+            + stocks + rental + other
+        )
+        net_assets = total_assets - debts
+        zakat_amount = max(0, net_assets * ZAKAT_RATE)
+
+        hass.bus.async_fire(
+            f"{DOMAIN}_zakat",
+            {
+                "total_assets": round(total_assets, 2),
+                "debts": round(debts, 2),
+                "net_assets": round(net_assets, 2),
+                "zakat_rate": f"{ZAKAT_RATE * 100}%",
+                "zakat_amount": round(zakat_amount, 2),
+                "currency": currency,
+                "breakdown": {
+                    "savings": savings,
+                    "gold_value": gold_value,
+                    "silver_value": silver_value,
+                    "business_assets": business_assets,
+                    "stocks_investments": stocks,
+                    "rental_income": rental,
+                    "other_income": other,
+                },
+            },
+        )
+
+    async def handle_get_hajj_guide(call: ServiceCall) -> None:
+        """Handle get_hajj_guide service call."""
+        from .const import HAJJ_GUIDE
+
+        hass.bus.async_fire(
+            f"{DOMAIN}_hajj_guide",
+            {"guide": HAJJ_GUIDE},
+        )
+
+    async def handle_get_umrah_guide(call: ServiceCall) -> None:
+        """Handle get_umrah_guide service call."""
+        from .const import UMRAH_GUIDE
+
+        hass.bus.async_fire(
+            f"{DOMAIN}_umrah_guide",
+            {"guide": UMRAH_GUIDE},
+        )
+
+    async def handle_send_greeting(call: ServiceCall) -> None:
+        """Handle send_greeting service call."""
+        from .const import GREETING_TEMPLATES
+
+        occasion = call.data["occasion"]
+        recipient = call.data.get("recipient_name", "")
+        custom_msg = call.data.get("custom_message", "")
+
+        # Find matching template
+        template = None
+        for t in GREETING_TEMPLATES:
+            if occasion.lower() in t["occasion"].lower():
+                template = t
+                break
+
+        if not template:
+            template = GREETING_TEMPLATES[-2]  # General template
+
+        greeting_text = template["greeting"]
+        if recipient:
+            greeting_text = f"Dear {recipient}, {greeting_text}"
+        if custom_msg:
+            greeting_text += f" {custom_msg}"
+
+        hass.bus.async_fire(
+            f"{DOMAIN}_greeting",
+            {
+                "occasion": template["occasion"],
+                "greeting": greeting_text,
+                "arabic": template["arabic"],
+                "recipient": recipient,
+            },
+        )
+
+    async def handle_prayer_request(call: ServiceCall) -> None:
+        """Handle prayer_request service call."""
+        prayer_text = call.data["prayer_text"]
+        requester = call.data.get("requester_name", "Anonymous")
+        category = call.data.get("category", "general")
+
+        from datetime import datetime as dt
+
+        hass.bus.async_fire(
+            f"{DOMAIN}_prayer_request",
+            {
+                "prayer_text": prayer_text,
+                "requester_name": requester,
+                "category": category,
+                "timestamp": dt.now().isoformat(),
+            },
+        )
+
+    async def handle_get_allah_names(call: ServiceCall) -> None:
+        """Handle get_allah_names service call."""
+        from .const import NAMES_OF_ALLAH
+
+        number = call.data.get("number")
+
+        if number:
+            names = [n for n in NAMES_OF_ALLAH if n["number"] == number]
+        else:
+            names = NAMES_OF_ALLAH
+
+        hass.bus.async_fire(
+            f"{DOMAIN}_allah_names",
+            {"names": names, "total": len(NAMES_OF_ALLAH)},
+        )
+
     # Register all services
     if not hass.services.has_service(DOMAIN, SERVICE_GET_SURAH):
         hass.services.async_register(
@@ -234,4 +406,46 @@ async def async_register_services(hass: HomeAssistant) -> None:
     if not hass.services.has_service(DOMAIN, SERVICE_GET_DUA):
         hass.services.async_register(
             DOMAIN, SERVICE_GET_DUA, handle_get_dua, schema=SCHEMA_GET_DUA
+        )
+
+    if not hass.services.has_service(DOMAIN, SERVICE_CALCULATE_ZAKAT):
+        hass.services.async_register(
+            DOMAIN,
+            SERVICE_CALCULATE_ZAKAT,
+            handle_calculate_zakat,
+            schema=SCHEMA_CALCULATE_ZAKAT,
+        )
+
+    if not hass.services.has_service(DOMAIN, SERVICE_GET_HAJJ_GUIDE):
+        hass.services.async_register(
+            DOMAIN, SERVICE_GET_HAJJ_GUIDE, handle_get_hajj_guide
+        )
+
+    if not hass.services.has_service(DOMAIN, SERVICE_GET_UMRAH_GUIDE):
+        hass.services.async_register(
+            DOMAIN, SERVICE_GET_UMRAH_GUIDE, handle_get_umrah_guide
+        )
+
+    if not hass.services.has_service(DOMAIN, SERVICE_SEND_GREETING):
+        hass.services.async_register(
+            DOMAIN,
+            SERVICE_SEND_GREETING,
+            handle_send_greeting,
+            schema=SCHEMA_SEND_GREETING,
+        )
+
+    if not hass.services.has_service(DOMAIN, SERVICE_PRAYER_REQUEST):
+        hass.services.async_register(
+            DOMAIN,
+            SERVICE_PRAYER_REQUEST,
+            handle_prayer_request,
+            schema=SCHEMA_PRAYER_REQUEST,
+        )
+
+    if not hass.services.has_service(DOMAIN, SERVICE_GET_ALLAH_NAMES):
+        hass.services.async_register(
+            DOMAIN,
+            SERVICE_GET_ALLAH_NAMES,
+            handle_get_allah_names,
+            schema=SCHEMA_GET_ALLAH_NAMES,
         )

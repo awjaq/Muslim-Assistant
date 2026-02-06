@@ -604,22 +604,22 @@ automation:
 
 ## Dashboard
 
-Muslim Assistant includes a pre-built Lovelace dashboard. To add it:
+Muslim Assistant **automatically creates a dashboard** in your sidebar when the integration is set up. Look for **"Muslim Assistant"** in the left sidebar after installation.
 
-### Option 1: Import YAML Dashboard
+The dashboard includes 4 organized sections:
+- **Prayer Times** -- Hero next prayer card + full daily schedule
+- **Qibla & Calendar** -- Compass direction, full Hijri date (Arabic + English), Ramadan tracker
+- **Daily Inspiration** -- Quran verse, Name of Allah, Dua, Islamic quote
+- **Audio & Tools** -- Adhan/Quran playback buttons, Tasbih counter, nearby places, Makkah Live, guides
+
+### Manual Setup (if auto-creation doesn't work)
 
 1. Go to **Settings > Dashboards**.
 2. Click **+ Add Dashboard**.
-3. Choose **New dashboard from scratch**.
-4. Give it a name like **Muslim Assistant** and set the icon to `mdi:mosque`.
-5. Open the new dashboard, click the **three dots** menu > **Edit Dashboard**.
-6. Click the **three dots** again > **Raw configuration editor**.
-7. Paste the contents of `dashboard/muslim_assistant_dashboard.yaml` from this repository.
-8. Click **Save**.
-
-### Option 2: Add to Existing Dashboard
-
-You can also add individual cards from the dashboard YAML to any existing dashboard.
+3. Name: **Muslim Assistant**, Icon: `mdi:mosque`.
+4. Open it > **Edit Dashboard** > **3-dot menu** > **Raw configuration editor**.
+5. Paste the contents of `dashboard/muslim_assistant_dashboard.yaml` from this repository.
+6. Click **Save**.
 
 ---
 

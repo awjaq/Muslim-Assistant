@@ -145,7 +145,7 @@ DEFAULT_ADHAN = "Makkah (Mishary Alafasy)"
 AUDIO_BITRATE = 128
 
 # Makkah Live Stream
-MAKKAH_LIVE_STREAM_URL = "https://www.youtube.com/embed/bN3lSRfFWz8"
+MAKKAH_LIVE_STREAM_URL = "https://www.youtube.com/@saudiqurantv/live"
 
 # ── Duas collection ───────────────────────────────────────────────
 

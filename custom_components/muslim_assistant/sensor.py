@@ -402,7 +402,6 @@ class TasbihCounterSensor(MuslimAssistantEntity, SensorEntity):
 
     _attr_icon = "mdi:counter"
     _attr_name = "Tasbih Counter"
-    _attr_state_class = SensorStateClass.TOTAL_INCREASING
 
     def __init__(
         self,

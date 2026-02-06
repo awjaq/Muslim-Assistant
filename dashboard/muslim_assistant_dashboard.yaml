@@ -1,14 +1,16 @@
 ###############################################################################
 # Muslim Assistant - Lovelace Dashboard
 #
-# HOW TO USE:
-# 1. Copy this file to your HA config directory
-# 2. In HA, go to Settings > Dashboards > Add Dashboard
-# 3. Choose "Start with an empty dashboard" > Edit Dashboard
-# 4. Click the 3-dot menu (top right) > Raw configuration editor
-# 5. Paste the contents of this file and save
+# This dashboard is AUTOMATICALLY CREATED when you install Muslim Assistant.
+# Check your sidebar for "Muslim Assistant".
 #
-# OR add to your configuration.yaml:
+# If you need to add it manually:
+#   1. Go to Settings > Dashboards > + Add Dashboard
+#   2. Name: "Muslim Assistant", Icon: mdi:mosque
+#   3. Open it > Edit Dashboard > 3-dot menu > Raw configuration editor
+#   4. Paste this file's contents and Save
+#
+# OR add to configuration.yaml:
 #   lovelace:
 #     dashboards:
 #       muslim-assistant:
@@ -19,24 +21,29 @@
 #         filename: muslim_assistant_dashboard.yaml
 ###############################################################################
 
-title: Muslim Assistant
 views:
   - title: Muslim Assistant
     path: muslim-assistant
     icon: mdi:star-crescent
     type: sections
+    max_columns: 4
     sections:
-      # ── Prayer Times ──────────────────────────────────────────────
+
+      # ═══════════════════════════════════════════════════════════════════════
+      # COLUMN 1: Prayer Times
+      # ═══════════════════════════════════════════════════════════════════════
       - title: Prayer Times
         type: grid
         cards:
-          - type: entity
-            entity: sensor.muslim_assistant_next_prayer
-            name: Next Prayer
-            icon: mdi:clock-alert
+          # ── Hero: Next Prayer ──
+          - type: markdown
+            content: |
+              # {{ states('sensor.muslim_assistant_next_prayer') }}
+              ## {{ state_attr('sensor.muslim_assistant_next_prayer', 'time') }}
+              {{ state_attr('sensor.muslim_assistant_next_prayer', 'time_remaining') }} remaining
 
+          # ── Today's Schedule ──
           - type: entities
-            title: Today's Prayer Times
             show_header_toggle: false
             entities:
               - entity: sensor.muslim_assistant_fajr_prayer_time
@@ -47,10 +54,10 @@ views:
                 icon: mdi:weather-sunny
               - entity: sensor.muslim_assistant_dhuhr_prayer_time
                 name: Dhuhr
-                icon: mdi:weather-sunny
+                icon: mdi:white-balance-sunny
               - entity: sensor.muslim_assistant_asr_prayer_time
                 name: Asr
-                icon: mdi:weather-partly-cloudy
+                icon: mdi:weather-sunny-alert
               - entity: sensor.muslim_assistant_maghrib_prayer_time
                 name: Maghrib
                 icon: mdi:weather-sunset-down
@@ -58,167 +65,187 @@ views:
                 name: Isha
                 icon: mdi:weather-night
 
-      # ── Audio Controls ────────────────────────────────────────────
-      - title: Audio
-        type: grid
-        cards:
-          - type: button
-            name: Play Adhan
-            icon: mdi:mosque
-            tap_action:
-              action: call-service
-              service: muslim_assistant.play_adhan
-            icon_height: 50px
-
-          - type: button
-            name: Play Surah Al-Fatiha
-            icon: mdi:book-open-page-variant
-            tap_action:
-              action: call-service
-              service: muslim_assistant.play_quran
-              data:
-                surah_number: 1
-            icon_height: 50px
-
-          - type: button
-            name: Play Surah Al-Baqarah
-            icon: mdi:book-open-page-variant
-            tap_action:
-              action: call-service
-              service: muslim_assistant.play_quran
-              data:
-                surah_number: 2
-            icon_height: 50px
-
-          - type: button
-            name: Play Surah Yasin
-            icon: mdi:book-open-page-variant
-            tap_action:
-              action: call-service
-              service: muslim_assistant.play_quran
-              data:
-                surah_number: 36
-            icon_height: 50px
-
-          - type: button
-            name: Play Surah Ar-Rahman
-            icon: mdi:book-open-page-variant
-            tap_action:
-              action: call-service
-              service: muslim_assistant.play_quran
-              data:
-                surah_number: 55
-            icon_height: 50px
-
-          - type: button
-            name: Play Surah Al-Mulk
-            icon: mdi:book-open-page-variant
-            tap_action:
-              action: call-service
-              service: muslim_assistant.play_quran
-              data:
-                surah_number: 67
-            icon_height: 50px
-
-      # ── Qibla & Calendar ──────────────────────────────────────────
+      # ═══════════════════════════════════════════════════════════════════════
+      # COLUMN 2: Qibla & Calendar
+      # ═══════════════════════════════════════════════════════════════════════
       - title: Qibla & Calendar
         type: grid
         cards:
-          - type: entity
-            entity: sensor.muslim_assistant_qibla_direction
-            name: Qibla Direction
-            icon: mdi:compass
+          # ── Qibla Direction ──
+          - type: markdown
+            content: |
+              ### Qibla Direction
+              # {{ states('sensor.muslim_assistant_qibla_direction') }}° {{ state_attr('sensor.muslim_assistant_qibla_direction', 'cardinal_direction') }}
+              {{ state_attr('sensor.muslim_assistant_qibla_direction', 'instructions') }}
 
-          - type: entity
-            entity: sensor.muslim_assistant_hijri_date
-            name: Hijri Date
-            icon: mdi:calendar-star
+          # ── Hijri Calendar (wide, full date) ──
+          - type: markdown
+            content: |
+              ### Hijri Calendar
+              # {{ state_attr('sensor.muslim_assistant_hijri_date', 'hijri_day') }} {{ state_attr('sensor.muslim_assistant_hijri_date', 'hijri_month') }} {{ state_attr('sensor.muslim_assistant_hijri_date', 'hijri_year') }}
+              **{{ state_attr('sensor.muslim_assistant_hijri_date', 'hijri_month_arabic') }}** — {{ state_attr('sensor.muslim_assistant_hijri_date', 'hijri_weekday') }} ({{ state_attr('sensor.muslim_assistant_hijri_date', 'hijri_weekday_arabic') }})
 
+              {{ state_attr('sensor.muslim_assistant_hijri_date', 'gregorian_date') }}
+
+          # ── Ramadan Tracker ──
           - type: entity
             entity: sensor.muslim_assistant_ramadan_tracker
-            name: Ramadan
-            icon: mdi:food-off
+            name: Ramadan Tracker
+            icon: mdi:moon-waning-crescent
 
-      # ── Daily Inspiration ─────────────────────────────────────────
+      # ═══════════════════════════════════════════════════════════════════════
+      # COLUMN 3: Daily Inspiration
+      # ═══════════════════════════════════════════════════════════════════════
       - title: Daily Inspiration
         type: grid
         cards:
+          # ── Quran Verse of the Day ──
           - type: markdown
-            title: Quran Verse of the Day
-            content: >
-              **{{ state_attr('sensor.muslim_assistant_quran_verse', 'surah_name') }}
-              ({{ state_attr('sensor.muslim_assistant_quran_verse', 'surah_number') }}:{{ state_attr('sensor.muslim_assistant_quran_verse', 'ayah_number') }})**
-
+            content: |
+              ### Quran Verse
+              **{{ states('sensor.muslim_assistant_quran_verse') }}**
 
               {{ state_attr('sensor.muslim_assistant_quran_verse', 'text_arabic') }}
 
-
               *{{ state_attr('sensor.muslim_assistant_quran_verse', 'text_translation') }}*
 
+          # ── Name of Allah ──
           - type: markdown
-            title: Name of Allah
-            content: >
-              **#{{ state_attr('sensor.muslim_assistant_name_of_allah', 'number') }}
-              - {{ states('sensor.muslim_assistant_name_of_allah') }}**
+            content: |
+              ### Name of Allah #{{ state_attr('sensor.muslim_assistant_name_of_allah', 'number') }}
+              # {{ state_attr('sensor.muslim_assistant_name_of_allah', 'arabic') }}
+              **{{ states('sensor.muslim_assistant_name_of_allah') }}** — {{ state_attr('sensor.muslim_assistant_name_of_allah', 'meaning') }}
 
-
-              {{ state_attr('sensor.muslim_assistant_name_of_allah', 'arabic') }}
-
-
-              *{{ state_attr('sensor.muslim_assistant_name_of_allah', 'meaning') }}*
-
+          # ── Daily Dua ──
           - type: markdown
-            title: Daily Dua
-            content: >
+            content: |
+              ### Daily Dua
               **{{ states('sensor.muslim_assistant_daily_dua') }}**
-
 
               {{ state_attr('sensor.muslim_assistant_daily_dua', 'arabic') }}
 
-
               *{{ state_attr('sensor.muslim_assistant_daily_dua', 'transliteration') }}*
-
 
               {{ state_attr('sensor.muslim_assistant_daily_dua', 'translation') }}
 
+          # ── Islamic Quote ──
           - type: markdown
-            title: Islamic Quote
-            content: >
-              {{ state_attr('sensor.muslim_assistant_islamic_quote', 'quote_full') }}
-
-
+            content: |
+              ### Islamic Quote
               {{ state_attr('sensor.muslim_assistant_islamic_quote', 'arabic') }}
 
+              *{{ state_attr('sensor.muslim_assistant_islamic_quote', 'quote_full') }}*
 
-              *— {{ state_attr('sensor.muslim_assistant_islamic_quote', 'source') }}*
+              — {{ state_attr('sensor.muslim_assistant_islamic_quote', 'source') }}
 
-      # ── Tasbih Counter ────────────────────────────────────────────
-      - title: Tasbih
+      # ═══════════════════════════════════════════════════════════════════════
+      # COLUMN 4: Audio & Tools
+      # ═══════════════════════════════════════════════════════════════════════
+      - title: Audio & Tools
         type: grid
         cards:
+          # ── Audio Controls ──
+          - type: button
+            name: Play Adhan
+            icon: mdi:mosque
+            icon_height: 40px
+            tap_action:
+              action: perform-action
+              perform_action: muslim_assistant.play_adhan
+              data: {}
+            hold_action:
+              action: none
+
+          - type: button
+            name: Al-Fatiha
+            icon: mdi:book-open-page-variant
+            icon_height: 40px
+            tap_action:
+              action: perform-action
+              perform_action: muslim_assistant.play_quran
+              data:
+                surah_number: 1
+            hold_action:
+              action: none
+
+          - type: button
+            name: Yasin
+            icon: mdi:book-open-page-variant
+            icon_height: 40px
+            tap_action:
+              action: perform-action
+              perform_action: muslim_assistant.play_quran
+              data:
+                surah_number: 36
+            hold_action:
+              action: none
+
+          - type: button
+            name: Ar-Rahman
+            icon: mdi:book-open-page-variant
+            icon_height: 40px
+            tap_action:
+              action: perform-action
+              perform_action: muslim_assistant.play_quran
+              data:
+                surah_number: 55
+            hold_action:
+              action: none
+
+          - type: button
+            name: Al-Mulk
+            icon: mdi:book-open-page-variant
+            icon_height: 40px
+            tap_action:
+              action: perform-action
+              perform_action: muslim_assistant.play_quran
+              data:
+                surah_number: 67
+            hold_action:
+              action: none
+
+          - type: button
+            name: Al-Baqarah
+            icon: mdi:book-open-page-variant
+            icon_height: 40px
+            tap_action:
+              action: perform-action
+              perform_action: muslim_assistant.play_quran
+              data:
+                surah_number: 2
+            hold_action:
+              action: none
+
+          # ── Tasbih Counter ──
           - type: entity
             entity: sensor.muslim_assistant_tasbih_counter
             name: Tasbih Counter
             icon: mdi:counter
 
-          - type: button
-            name: Count +1
-            icon: mdi:plus
-            tap_action:
-              action: call-service
-              service: muslim_assistant.tasbih_increment
+          - type: horizontal-stack
+            cards:
+              - type: button
+                name: "+1"
+                icon: mdi:plus
+                tap_action:
+                  action: perform-action
+                  perform_action: muslim_assistant.tasbih_increment
+                  data: {}
+                hold_action:
+                  action: none
+                double_tap_action:
+                  action: none
+              - type: button
+                name: Reset
+                icon: mdi:restart
+                tap_action:
+                  action: perform-action
+                  perform_action: muslim_assistant.tasbih_reset
+                  data: {}
+                hold_action:
+                  action: none
 
-          - type: button
-            name: Reset
-            icon: mdi:refresh
-            tap_action:
-              action: call-service
-              service: muslim_assistant.tasbih_reset
-
-      # ── Nearby Places ─────────────────────────────────────────────
-      - title: Nearby
-        type: grid
-        cards:
+          # ── Nearby Places ──
           - type: entity
             entity: sensor.muslim_assistant_nearby_mosques
             name: Nearby Mosques
@@ -229,35 +256,45 @@ views:
             name: Halal Restaurants
             icon: mdi:food-halal
 
-      # ── Makkah Live ───────────────────────────────────────────────
-      - title: Makkah Live
-        type: grid
-        cards:
-          - type: iframe
-            url: https://www.youtube.com/embed/bN3lSRfFWz8
-            aspect_ratio: "16:9"
-
-      # ── Quick Services ────────────────────────────────────────────
-      - title: Tools
-        type: grid
-        cards:
+          # ── Makkah Live (opens in browser) ──
           - type: button
-            name: Hajj Guide
-            icon: mdi:kabaddi
+            name: Makkah Live
+            icon: mdi:video
+            icon_height: 40px
             tap_action:
-              action: call-service
-              service: muslim_assistant.get_hajj_guide
+              action: url
+              url_path: "https://www.youtube.com/@saudiqurantv/live"
+            hold_action:
+              action: none
 
-          - type: button
-            name: Umrah Guide
-            icon: mdi:walk
-            tap_action:
-              action: call-service
-              service: muslim_assistant.get_umrah_guide
+          # ── Guides ──
+          - type: horizontal-stack
+            cards:
+              - type: button
+                name: Hajj Guide
+                icon: mdi:book-open-variant
+                tap_action:
+                  action: perform-action
+                  perform_action: muslim_assistant.get_hajj_guide
+                  data: {}
+                hold_action:
+                  action: none
+              - type: button
+                name: Umrah Guide
+                icon: mdi:walk
+                tap_action:
+                  action: perform-action
+                  perform_action: muslim_assistant.get_umrah_guide
+                  data: {}
+                hold_action:
+                  action: none
 
           - type: button
             name: 99 Names of Allah
             icon: mdi:star-crescent
             tap_action:
-              action: call-service
-              service: muslim_assistant.get_allah_names
+              action: perform-action
+              perform_action: muslim_assistant.get_allah_names
+              data: {}
+            hold_action:
+              action: none

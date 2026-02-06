@@ -1,0 +1,78 @@
+{
+  "entity": {
+    "sensor": {
+      "next_prayer": {
+        "default": "mdi:mosque"
+      },
+      "fajr": {
+        "default": "mdi:weather-sunset-up"
+      },
+      "sunrise": {
+        "default": "mdi:weather-sunny"
+      },
+      "dhuhr": {
+        "default": "mdi:white-balance-sunny"
+      },
+      "asr": {
+        "default": "mdi:weather-sunny-alert"
+      },
+      "maghrib": {
+        "default": "mdi:weather-sunset-down"
+      },
+      "isha": {
+        "default": "mdi:weather-night"
+      },
+      "quran_verse": {
+        "default": "mdi:book-open-page-variant"
+      },
+      "qibla_direction": {
+        "default": "mdi:compass"
+      },
+      "hijri_date": {
+        "default": "mdi:calendar-star"
+      },
+      "daily_dua": {
+        "default": "mdi:hands-pray"
+      },
+      "tasbih_counter": {
+        "default": "mdi:counter"
+      },
+      "names_of_allah": {
+        "default": "mdi:star-crescent"
+      },
+      "islamic_quote": {
+        "default": "mdi:format-quote-close"
+      },
+      "ramadan_tracker": {
+        "default": "mdi:moon-waning-crescent"
+      },
+      "nearby_mosques": {
+        "default": "mdi:map-marker-radius"
+      },
+      "halal_restaurants": {
+        "default": "mdi:food-halal"
+      },
+      "makkah_live": {
+        "default": "mdi:video"
+      }
+    }
+  },
+  "services": {
+    "play_adhan": "mdi:bullhorn",
+    "play_quran": "mdi:book-music",
+    "next_verse": "mdi:page-next",
+    "random_verse": "mdi:shuffle-variant",
+    "next_dua": "mdi:hands-pray",
+    "random_dua": "mdi:shuffle-variant",
+    "next_name": "mdi:star-crescent",
+    "random_name": "mdi:shuffle-variant",
+    "next_quote": "mdi:format-quote-close",
+    "random_quote": "mdi:shuffle-variant",
+    "increment_tasbih": "mdi:plus",
+    "reset_tasbih": "mdi:restart",
+    "set_tasbih_target": "mdi:target",
+    "get_prayer_times": "mdi:clock-outline",
+    "get_hajj_guide": "mdi:kabaddi",
+    "get_umrah_guide": "mdi:pillar"
+  }
+}

@@ -1,11 +1,13 @@
 """Media player platform for Muslim Assistant integration.
 
 Provides a virtual media player entity that proxies Adhan and Quran audio
-to any Home Assistant media player (Alexa, Google Home, Sonos, etc.).
+to any Home Assistant media player (Alexa, Google Home, Sonos, phones, etc.).
+Supports multiple target devices simultaneously.
 """
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Any
 
@@ -25,7 +27,6 @@ from .const import (
     CONF_TARGET_PLAYER,
     DEFAULT_RECITER,
     DOMAIN,
-    QURAN_RECITERS,
     VERSION,
 )
 from .coordinator import MuslimAssistantCoordinator
@@ -47,8 +48,8 @@ class MuslimAssistantMediaPlayer(MediaPlayerEntity):
     """Media player entity for Adhan and Quran audio.
 
     This entity acts as a controller. When you call play_media on it,
-    it forwards the audio URL to the user's configured target media player
-    (e.g., an Alexa Echo, Google Home speaker, or Sonos).
+    it forwards the audio URL to ALL configured target media players
+    (e.g., Alexa, Google Home, Sonos, phones via companion app).
     """
 
     _attr_has_entity_name = True
@@ -109,42 +110,60 @@ class MuslimAssistantMediaPlayer(MediaPlayerEntity):
         reciter = self._entry.options.get(
             CONF_QURAN_RECITER, DEFAULT_RECITER
         )
-        target = self._entry.options.get(CONF_TARGET_PLAYER, "")
+        targets = self._get_target_entity_ids()
         return {
             "quran_reciter": reciter,
-            "target_media_player": target,
+            "target_media_players": targets,
+            "target_count": len(targets),
         }
 
-    def _get_target_entity_id(self) -> str | None:
-        """Get the target media player entity ID from options."""
-        return self._entry.options.get(CONF_TARGET_PLAYER) or None
+    def _get_target_entity_ids(self) -> list[str]:
+        """Get all target media player entity IDs from options."""
+        targets = self._entry.options.get(CONF_TARGET_PLAYER, [])
+        # Handle backward compatibility: old format was a single string
+        if isinstance(targets, str):
+            return [targets] if targets else []
+        if isinstance(targets, list):
+            return [t for t in targets if t]
+        return []
 
-    async def _forward_to_target(
+    async def _forward_to_targets(
         self, service: str, data: dict[str, Any] | None = None
     ) -> None:
-        """Forward a media_player service call to the target speaker."""
-        target = self._get_target_entity_id()
-        if not target:
+        """Forward a media_player service call to ALL target speakers."""
+        targets = self._get_target_entity_ids()
+        if not targets:
             _LOGGER.warning(
-                "No target media player configured. "
+                "No target media players configured. "
                 "Go to Muslim Assistant > Configure > Audio Settings "
-                "and set your speaker entity (e.g., media_player.living_room_echo)"
+                "and select your speakers."
             )
             return
 
-        service_data = {"entity_id": target}
-        if data:
-            service_data.update(data)
-
-        try:
-            await self.hass.services.async_call(
-                "media_player",
-                service,
-                service_data,
-                blocking=True,
+        # Call service on all targets simultaneously
+        tasks = []
+        for target in targets:
+            service_data = {"entity_id": target}
+            if data:
+                service_data.update(data)
+            tasks.append(
+                self.hass.services.async_call(
+                    "media_player",
+                    service,
+                    service_data,
+                    blocking=True,
+                )
             )
-        except Exception as err:
-            _LOGGER.error("Error calling %s on %s: %s", service, target, err)
+
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        for i, result in enumerate(results):
+            if isinstance(result, Exception):
+                _LOGGER.error(
+                    "Error calling %s on %s: %s",
+                    service,
+                    targets[i],
+                    result,
+                )
 
     async def async_play_media(
         self,
@@ -152,12 +171,12 @@ class MuslimAssistantMediaPlayer(MediaPlayerEntity):
         media_id: str,
         **kwargs: Any,
     ) -> None:
-        """Play media on the target device."""
+        """Play media on all target devices."""
         self._media_content_id = media_id
         self._state = MediaPlayerState.PLAYING
         self.async_write_ha_state()
 
-        await self._forward_to_target(
+        await self._forward_to_targets(
             "play_media",
             {
                 "media_content_id": media_id,
@@ -168,29 +187,29 @@ class MuslimAssistantMediaPlayer(MediaPlayerEntity):
         )
 
     async def async_media_play(self) -> None:
-        """Resume playback on the target device."""
+        """Resume playback on all target devices."""
         if self._media_content_id:
             self._state = MediaPlayerState.PLAYING
             self.async_write_ha_state()
-            await self._forward_to_target("media_play")
+            await self._forward_to_targets("media_play")
 
     async def async_media_pause(self) -> None:
-        """Pause playback on the target device."""
+        """Pause playback on all target devices."""
         self._state = MediaPlayerState.PAUSED
         self.async_write_ha_state()
-        await self._forward_to_target("media_pause")
+        await self._forward_to_targets("media_pause")
 
     async def async_media_stop(self) -> None:
-        """Stop the media player."""
+        """Stop all target media players."""
         self._state = MediaPlayerState.IDLE
         self._media_title = None
         self._media_artist = None
         self._media_content_id = None
         self.async_write_ha_state()
-        await self._forward_to_target("media_stop")
+        await self._forward_to_targets("media_stop")
 
     async def async_play_adhan(self) -> None:
-        """Play the Adhan audio."""
+        """Play the Adhan audio on all targets."""
         url = self.coordinator.get_adhan_audio_url()
         self._media_title = "Adhan"
         self._media_artist = "Muslim Assistant"
@@ -199,7 +218,7 @@ class MuslimAssistantMediaPlayer(MediaPlayerEntity):
     async def async_play_quran(
         self, surah: int, ayah: int | None = None
     ) -> None:
-        """Play Quran audio for a surah or ayah."""
+        """Play Quran audio on all targets."""
         url = self.coordinator.get_quran_audio_url(surah, ayah)
         reciter = self._entry.options.get(
             CONF_QURAN_RECITER, DEFAULT_RECITER

@@ -711,7 +711,17 @@ The Muslim Assistant dashboard has an **"Play Adhan"** button. Just tap it.
 
 ### How do I get Alexa devices to show up as speakers?
 
-Alexa devices don't appear in Home Assistant automatically. You need to install the **Alexa Media Player** custom integration:
+There are **two options** to get your Echo/Alexa devices into Home Assistant:
+
+**Option 1: Official [Alexa Devices](https://www.home-assistant.io/integrations/alexa_devices/) Integration (Built-in, HA 2025.6+)**
+
+1. Go to **Settings > Devices & Services > + Add Integration**.
+2. Search for **"Alexa Devices"** and log in with your Amazon account.
+3. Requires **multi-factor authentication** via an authenticator app (e.g., Microsoft Authenticator). Enable it in your Amazon account under **Login & Security > 2-step verification > Backup methods > Add new app**.
+
+> **Limitation:** The official integration does **not yet** support full `media_player` entities (planned for a future release). You can use `alexa_devices.send_text_command` to play audio as a workaround, but your Echo devices won't appear in the Muslim Assistant **Target Speakers** picker until media_player support is added.
+
+**Option 2: [Alexa Media Player](https://github.com/alandtse/alexa_media_player) Custom Integration via HACS (Recommended for audio playback)**
 
 1. Open **HACS** in your Home Assistant sidebar.
 2. Go to **Integrations** > search for **"Alexa Media Player"**.
@@ -720,7 +730,9 @@ Alexa devices don't appear in Home Assistant automatically. You need to install 
 5. Search for **"Alexa Media Player"** and log in with your Amazon account.
 6. After setup, all your Echo/Alexa devices will appear as `media_player.echo_*` entities.
 
-Now when you go to **Muslim Assistant > Configure > Audio & Speaker Settings**, your Echo devices will show up in the **Target Speakers** picker.
+This creates full `media_player` entities, so your Echo devices will show up in the Muslim Assistant **Target Speakers** picker and work with auto-play Adhan, Quran playback, and all audio features.
+
+> **Note:** You can run both integrations simultaneously. The official integration is more stable but has fewer features. The HACS integration provides full media_player control but uses an unofficial API.
 
 ---
 

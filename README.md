@@ -190,15 +190,22 @@ You don't need to configure or enter any API keys. Everything works out of the b
 
 ### Options Flow (v2.0)
 
-After initial setup, you can reconfigure audio and prayer settings at any time without removing the integration:
+After initial setup, you can reconfigure audio, prayer, and automation settings at any time without removing the integration:
 
 1. Go to **Settings > Devices & Services**.
 2. Find **Muslim Assistant** and click **Configure**.
-3. Adjust any of the following:
-   - Quran reciter
-   - Adhan sound
-   - Prayer time offsets (per-prayer, -30 to +30 minutes)
-   - Target media player entity
+3. Choose a settings category:
+
+**Audio & Speaker Settings:**
+- Quran reciter (11 world-renowned reciters)
+- Adhan sound
+- Target speakers — **multi-select device picker** showing all your media players (Alexa, Google Home, Sonos, phones, etc.). Audio plays on all selected devices simultaneously.
+
+**Prayer Time Adjustments:**
+- Per-prayer offsets from -30 to +30 minutes
+
+**Automations:**
+- Toggle built-in automations on/off (see [Built-in Automations](#built-in-automations) below)
 
 ---
 
@@ -640,6 +647,161 @@ The icon on the **Settings > Integrations** page in Home Assistant comes from th
 The `brand/` folder in this repository contains the ready-to-submit PNG files.
 
 > **Note:** Entity icons (prayer times, Quran, Qibla, etc.) already display correctly using Material Design Icons in the HA UI. The brand logo only affects the integration card on the Settings > Integrations page.
+
+---
+
+## Built-in Automations
+
+Muslim Assistant includes **built-in automations** that you can enable with a single toggle — no YAML needed. Go to **Configure > Automations** to turn them on or off.
+
+| Automation | What It Does |
+|-----------|-------------|
+| **Play Adhan at prayer times** | Automatically plays the Adhan on your configured speakers when each prayer time arrives. Skips Sunrise. |
+| **Prayer time notifications** | Sends a mobile notification to your phone when each prayer time arrives. |
+| **Quran after Fajr** | Plays Surah Al-Mulk on your speakers 15 minutes after Fajr prayer. |
+| **Surah Al-Kahf on Fridays** | Plays Surah Al-Kahf on your speakers every Friday. |
+| **Suhoor reminder (Ramadan)** | Sends a notification reminding you to eat Suhoor when Fajr is approaching during Ramadan. |
+
+> **Note:** For notification-based automations, you need to select a **Notification Service** (e.g., `notify.mobile_app_your_phone`) in the Automations settings. For audio automations, make sure you have **Target Speakers** configured in Audio settings.
+
+---
+
+## FAQ
+
+### How do I add the dashboard?
+
+Muslim Assistant **automatically creates a dashboard** in your sidebar when the integration is set up. Look for **"Muslim Assistant"** in the left sidebar.
+
+If it doesn't appear automatically:
+
+1. Go to **Settings > Dashboards**.
+2. Click **+ Add Dashboard**.
+3. Name: **Muslim Assistant**, Icon: `mdi:mosque`.
+4. Open it, click the **pencil icon** (Edit) at the top right.
+5. Click the **3-dot menu** > **Raw configuration editor**.
+6. Paste the contents of `dashboard/muslim_assistant_dashboard.yaml` from this repository.
+7. Click **Save**.
+
+---
+
+### How do I play the Adhan?
+
+There are **3 ways** to play the Adhan:
+
+**Option 1: From the Dashboard**
+
+The Muslim Assistant dashboard has an **"Play Adhan"** button. Just tap it.
+
+**Option 2: Enable Auto-Adhan (Recommended)**
+
+1. Go to **Settings > Devices & Services > Muslim Assistant > Configure**.
+2. Select **Automations**.
+3. Turn on **"Play Adhan at every prayer time"**.
+4. The Adhan will now play automatically on your configured speakers at every prayer time.
+
+**Option 3: Developer Tools (Manual)**
+
+1. Go to **Developer Tools > Services** (or **Actions** in newer HA versions).
+2. Select `muslim_assistant.play_adhan`.
+3. Click **Perform Action**.
+
+> **Important:** You must configure at least one **Target Speaker** first! Go to **Configure > Audio & Speaker Settings** and select your speakers from the device picker.
+
+---
+
+### How do I get Alexa devices to show up as speakers?
+
+Alexa devices don't appear in Home Assistant automatically. You need to install the **Alexa Media Player** custom integration:
+
+1. Open **HACS** in your Home Assistant sidebar.
+2. Go to **Integrations** > search for **"Alexa Media Player"**.
+3. Install it and **restart Home Assistant**.
+4. Go to **Settings > Devices & Services > + Add Integration**.
+5. Search for **"Alexa Media Player"** and log in with your Amazon account.
+6. After setup, all your Echo/Alexa devices will appear as `media_player.echo_*` entities.
+
+Now when you go to **Muslim Assistant > Configure > Audio & Speaker Settings**, your Echo devices will show up in the **Target Speakers** picker.
+
+---
+
+### How do I get Google Home / Nest speakers to show up?
+
+Google Cast devices (Google Home, Nest Hub, Chromecast, etc.) should appear automatically via the built-in **Google Cast** integration. If they don't:
+
+1. Go to **Settings > Devices & Services**.
+2. Check if **Google Cast** is listed. If not, click **+ Add Integration** and search for **Google Cast**.
+3. Your Google/Nest speakers will appear as `media_player.*` entities.
+
+---
+
+### How do I play audio on my phone?
+
+Install the **Home Assistant Companion App** on your phone (iOS or Android). It automatically registers your phone as a `media_player` entity. Then select it in **Configure > Audio & Speaker Settings > Target Speakers**.
+
+---
+
+### Can I play audio on multiple speakers at the same time?
+
+Yes! The Target Speakers picker supports **multi-select**. Pick as many devices as you want — Alexa, Google Home, Sonos, phones, etc. Audio will play on **all selected devices simultaneously**.
+
+1. Go to **Configure > Audio & Speaker Settings**.
+2. Click the **Target Speakers** field.
+3. Select multiple devices from the list.
+
+---
+
+### How do I set up automations without writing YAML?
+
+Muslim Assistant includes **built-in automations** that you can toggle on/off:
+
+1. Go to **Settings > Devices & Services > Muslim Assistant > Configure**.
+2. Select **Automations**.
+3. Toggle on the automations you want:
+   - Auto-play Adhan at prayer times
+   - Prayer time mobile notifications
+   - Quran after Fajr
+   - Surah Al-Kahf on Fridays
+   - Suhoor reminders during Ramadan
+4. If using notification automations, select your **Notification Service** (e.g., `notify.mobile_app_your_phone`).
+
+No YAML, no manual automation setup — everything is handled internally by the integration.
+
+---
+
+### How do I change the Quran reciter or Adhan sound?
+
+1. Go to **Settings > Devices & Services > Muslim Assistant > Configure**.
+2. Select **Audio & Speaker Settings**.
+3. Pick your preferred **Quran Reciter** from 11 available reciters.
+4. Pick your preferred **Adhan Sound**.
+5. Click **Submit**.
+
+---
+
+### How do I adjust prayer times to match my local mosque?
+
+1. Go to **Settings > Devices & Services > Muslim Assistant > Configure**.
+2. Select **Prayer Time Adjustments**.
+3. Set an offset from **-30 to +30 minutes** for each prayer (Fajr, Dhuhr, Asr, Maghrib, Isha).
+4. Click **Submit**.
+
+---
+
+### Where does the integration get its data? Do I need API keys?
+
+No API keys needed. Muslim Assistant uses **free, open APIs**:
+
+- **[Aladhan API](https://aladhan.com)** — Prayer times, Qibla, Hijri calendar
+- **[Al Quran Cloud API](https://alquran.cloud)** — Quran text, translations, audio
+- **[OpenStreetMap Overpass API](https://overpass-api.de)** — Mosque and halal restaurant finder
+
+Everything works out of the box with no configuration.
+
+---
+
+### How does location work? Do I need to enter my coordinates?
+
+No. Muslim Assistant **automatically detects your location** from your Home Assistant settings (**Settings > System > General**). If you use the HA Companion App, your phone's GPS is used. You don't need to enter latitude/longitude manually.
 
 ---
 

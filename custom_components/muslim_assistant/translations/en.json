@@ -26,22 +26,23 @@
         "title": "Muslim Assistant Settings",
         "description": "Configure your Muslim Assistant preferences.",
         "menu_options": {
-          "audio": "Audio & Reciter Settings",
-          "prayer_adjustments": "Prayer Time Adjustments"
+          "audio": "Audio & Speaker Settings",
+          "prayer_adjustments": "Prayer Time Adjustments",
+          "automations": "Automations"
         }
       },
       "audio": {
-        "title": "Audio & Reciter Settings",
-        "description": "Choose your preferred Quran reciter, Adhan sound, and target speaker for audio playback.",
+        "title": "Audio & Speaker Settings",
+        "description": "Choose your Quran reciter, Adhan sound, and select the speakers to play audio on. You can pick multiple devices.",
         "data": {
           "quran_reciter": "Quran Reciter",
           "adhan_sound": "Adhan Sound",
-          "target_media_player": "Target Media Player"
+          "target_media_player": "Target Speakers"
         },
         "data_description": {
           "quran_reciter": "Select your preferred Quran reciter for audio playback.",
           "adhan_sound": "Select the Adhan sound you prefer.",
-          "target_media_player": "Entity ID of the media player to play audio on (e.g., media_player.living_room_echo)."
+          "target_media_player": "Select one or more media players (Alexa, Google Home, Sonos, phone, etc.). Audio will play on all selected devices."
         }
       },
       "prayer_adjustments": {
@@ -60,6 +61,26 @@
           "asr_offset": "Minutes to add/subtract from Asr time.",
           "maghrib_offset": "Minutes to add/subtract from Maghrib time.",
           "isha_offset": "Minutes to add/subtract from Isha time."
+        }
+      },
+      "automations": {
+        "title": "Automations",
+        "description": "Enable built-in automations. These run automatically inside the integration — no manual setup needed.",
+        "data": {
+          "auto_play_adhan": "Play Adhan at every prayer time",
+          "auto_prayer_notification": "Send notification at prayer times",
+          "notification_service": "Notification Service",
+          "auto_quran_after_fajr": "Play Quran after Fajr (Surah Al-Mulk, 15 min delay)",
+          "auto_surah_kahf_friday": "Play Surah Al-Kahf on Fridays",
+          "auto_suhoor_reminder": "Suhoor reminder during Ramadan"
+        },
+        "data_description": {
+          "auto_play_adhan": "Automatically plays the Adhan on your configured speakers when each prayer time arrives. Skips Sunrise.",
+          "auto_prayer_notification": "Sends a mobile notification when each prayer time arrives. Requires a notification service below.",
+          "notification_service": "Select your notification service (e.g., notify.mobile_app_your_phone). Required for notifications and Suhoor reminders.",
+          "auto_quran_after_fajr": "Plays Surah Al-Mulk on your speakers 15 minutes after Fajr prayer.",
+          "auto_surah_kahf_friday": "Plays Surah Al-Kahf on your speakers every Friday morning.",
+          "auto_suhoor_reminder": "Sends a Suhoor reminder notification during Ramadan when Fajr is approaching. Requires a notification service."
         }
       }
     }

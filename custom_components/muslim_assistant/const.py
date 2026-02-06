@@ -18,6 +18,14 @@ CONF_QURAN_RECITER = "quran_reciter"
 CONF_ADHAN_SOUND = "adhan_sound"
 CONF_TARGET_PLAYER = "target_media_player"
 
+# Automation options
+CONF_AUTO_ADHAN = "auto_play_adhan"
+CONF_AUTO_NOTIFY = "auto_prayer_notification"
+CONF_NOTIFY_SERVICE = "notification_service"
+CONF_AUTO_QURAN_FAJR = "auto_quran_after_fajr"
+CONF_AUTO_KAHF_FRIDAY = "auto_surah_kahf_friday"
+CONF_AUTO_SUHOOR = "auto_suhoor_reminder"
+
 # Defaults
 DEFAULT_CALC_METHOD = "ISNA"
 DEFAULT_SCHOOL = "Standard"

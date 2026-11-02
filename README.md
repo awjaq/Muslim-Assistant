@@ -709,71 +709,15 @@ The Muslim Assistant dashboard has an **"Play Adhan"** button. Just tap it.
 
 ---
 
-### How do I get Alexa devices to show up as speakers?
+### How do I use Alexa / Echo devices?
 
-There are **two options** to get your Echo/Alexa devices into Home Assistant:
+See the full **[Alexa / Echo Guide](docs/ALEXA.md)**. In short:
 
-**Option 1: Official [Alexa Devices](https://www.home-assistant.io/integrations/alexa_devices/) Integration (Built-in, HA 2025.6+)**
-
-1. Go to **Settings > Devices & Services > + Add Integration**.
-2. Search for **"Alexa Devices"** and log in with your Amazon account.
-3. Requires **multi-factor authentication** via an authenticator app (e.g., Microsoft Authenticator). Enable it in your Amazon account under **Login & Security > 2-step verification > Backup methods > Add new app**.
-
-> **Limitation:** The official integration does **not yet** support full `media_player` entities (planned for a future release). You can use `alexa_devices.send_text_command` to play audio as a workaround, but your Echo devices won't appear in the Muslim Assistant **Target Speakers** picker until media_player support is added.
-
-**Option 2: [Alexa Media Player](https://github.com/alandtse/alexa_media_player) Custom Integration via HACS (Recommended for audio playback)**
-
-1. Open **HACS** in your Home Assistant sidebar.
-2. Go to **Integrations** > search for **"Alexa Media Player"**.
-3. Install it and **restart Home Assistant**.
-4. Go to **Settings > Devices & Services > + Add Integration**.
-5. Search for **"Alexa Media Player"** and log in with your Amazon account.
-6. After setup, all your Echo/Alexa devices will appear as `media_player.echo_*` entities.
-
-This creates full `media_player` entities, so your Echo devices will show up in the Muslim Assistant **Target Speakers** picker and work with auto-play Adhan, Quran playback, and all audio features.
-
-> **Note:** You can run both integrations simultaneously. The official integration is more stable but has fewer features. The HACS integration provides full media_player control but uses an unofficial API.
-
----
-
-### Alexa says it "can't play" the Adhan. How do I stop that?
-
-Echo devices can't stream an MP3 link the way Google Home or Sonos can. When they get one, Alexa treats it as a voice search and replies that it can't play it. Muslim Assistant no longer sends the audio link to Echo devices. You choose what they do instead:
-
-1. Go to **Settings > Devices & Services > Muslim Assistant > Configure > Audio & Speaker Settings**.
-2. Set **Alexa / Echo behavior**:
-   - **Announce the prayer name** (default): Alexa says "It is time for Dhuhr prayer". Needs the [Alexa Media Player](https://github.com/alandtse/alexa_media_player) integration.
-   - **Run an Alexa routine**: runs a routine you made in the Alexa app, for example one that opens an Adhan skill. Type the routine's exact name in **Alexa routine for the Adhan**.
-   - **Stay silent**: Echo devices are skipped.
-
-Quran playback always skips Echo devices, for the same reason. Your other speakers still play the full Adhan and Quran audio.
-
-#### How do I make Alexa play the actual Adhan at prayer time?
-
-Use an Alexa routine. Muslim Assistant starts it at the exact prayer minute, and the routine plays the Adhan.
-
-1. In the **Alexa app**, go to **More → Routines → +**.
-2. **When this happens → Voice**: type a phrase, for example `adhan time`.
-3. **Add action → Customized**: type what you would say to Alexa to play an Adhan, for example `play Adhan Makkah on Amazon Music`, or open an Adhan skill.
-4. **From**: choose your Echo (for example Kitchen Echo Show). Save the routine.
-5. Say "Alexa, adhan time" once to check it works.
-6. In Home Assistant, go to **Muslim Assistant → Configure → Audio & Speaker Settings**. Set **Alexa / Echo behavior** to **Run an Alexa routine** and type `adhan time` in **Alexa routine for the Adhan**.
-7. Make sure **Configure → Automations → Play Adhan at every prayer time** is on.
-
-Test it from **Developer Tools → Actions → `muslim_assistant.play_adhan`**.
-
-#### How do I play the Adhan on several Alexa devices at once?
-
-**With "Announce the prayer name":** select all your Echo devices in **Target Speakers**. Every selected Echo makes the announcement.
-
-**With "Run an Alexa routine":** the routine decides which Echos play, not the Target Speakers list. Muslim Assistant starts the routine once, so set up the routine to play everywhere you want:
-
-1. In the **Alexa app**, go to **Devices → + → Combine Speakers → Multi-room music**. Pick the Echos you want, for example Kitchen, Main Bedroom and Kids Room, and name the group, for example `Adhan Speakers`. Skip this step if a group like **Everywhere** already has the right speakers.
-2. Edit your Adhan routine. Delete the **Customized** action and add **Music & Podcasts** instead. Search for the Adhan, for example `Adhan Makkah` on Amazon Music.
-3. In that action, set **From** to the speaker group. The Adhan then plays on all of them in sync.
-4. In Muslim Assistant, keep at least one Echo in **Target Speakers**. Its only job is to start the routine.
-
-Alternatively, add one **Customized** action per Echo, each with its own **From** device. They start a second or two apart rather than exactly together.
+- **Connect them**: install [Alexa Media Player](https://github.com/alandtse/alexa_media_player) from HACS. It makes your Echos appear in **Target Speakers**. The built-in Alexa Devices integration doesn't do that yet. [More](docs/ALEXA.md#1-connect-your-echo-devices-to-home-assistant)
+- **Alexa says it "can't play" the Adhan**: Echos can't stream audio links. Muslim Assistant no longer sends them one. Pick what they do in **Configure → Audio & Speaker Settings → Alexa / Echo behavior**: announce the prayer name, run an Alexa routine, or stay silent. [More](docs/ALEXA.md#3-choose-what-your-echos-do)
+- **Play the real Adhan at prayer time**: make an Alexa routine that plays an Adhan, then choose **Run an Alexa routine** and type the routine's voice phrase. [Step by step](docs/ALEXA.md#4-play-the-real-adhan-at-prayer-time)
+- **Play on several Echos at once**: select them all for announcements, or point the routine at a multi-room speaker group. [Step by step](docs/ALEXA.md#5-play-the-adhan-on-several-echos-at-once)
+- **Something not working?** See [Troubleshooting](docs/ALEXA.md#7-troubleshooting).
 
 ---
 
@@ -795,7 +739,7 @@ Install the **Home Assistant Companion App** on your phone (iOS or Android). It 
 
 ### Can I play audio on multiple speakers at the same time?
 
-Yes! The Target Speakers picker supports **multi-select**. Pick as many devices as you want — Alexa, Google Home, Sonos, phones, etc. Audio will play on **all selected devices simultaneously**.
+Yes! The Target Speakers picker supports **multi-select**. (For several Echo devices, see [Alexa: several Echos at once](docs/ALEXA.md#5-play-the-adhan-on-several-echos-at-once).) Pick as many devices as you want — Alexa, Google Home, Sonos, phones, etc. Audio will play on **all selected devices simultaneously**.
 
 1. Go to **Configure > Audio & Speaker Settings**.
 2. Click the **Target Speakers** field.

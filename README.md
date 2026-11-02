@@ -762,6 +762,19 @@ Use an Alexa routine. Muslim Assistant starts it at the exact prayer minute, and
 
 Test it from **Developer Tools → Actions → `muslim_assistant.play_adhan`**.
 
+#### How do I play the Adhan on several Alexa devices at once?
+
+**With "Announce the prayer name":** select all your Echo devices in **Target Speakers**. Every selected Echo makes the announcement.
+
+**With "Run an Alexa routine":** the routine decides which Echos play, not the Target Speakers list. Muslim Assistant starts the routine once, so set up the routine to play everywhere you want:
+
+1. In the **Alexa app**, go to **Devices → + → Combine Speakers → Multi-room music**. Pick the Echos you want, for example Kitchen, Main Bedroom and Kids Room, and name the group, for example `Adhan Speakers`. Skip this step if a group like **Everywhere** already has the right speakers.
+2. Edit your Adhan routine. Delete the **Customized** action and add **Music & Podcasts** instead. Search for the Adhan, for example `Adhan Makkah` on Amazon Music.
+3. In that action, set **From** to the speaker group. The Adhan then plays on all of them in sync.
+4. In Muslim Assistant, keep at least one Echo in **Target Speakers**. Its only job is to start the routine.
+
+Alternatively, add one **Customized** action per Echo, each with its own **From** device. They start a second or two apart rather than exactly together.
+
 ---
 
 ### How do I get Google Home / Nest speakers to show up?

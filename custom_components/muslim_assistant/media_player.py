@@ -203,10 +203,13 @@ class MuslimAssistantMediaPlayer(MediaPlayerEntity):
             if not is_adhan or not routine:
                 _LOGGER.debug("No Alexa routine for this audio; skipping Alexa")
                 return
+            # Run the routine ONCE. The routine itself decides which Echo
+            # devices or speaker group it plays on, so running it once per
+            # selected Echo would start the same Adhan several times.
             await self._forward_to_targets(
                 "play_media",
                 {"media_content_id": routine, "media_content_type": "routine"},
-                alexa,
+                alexa[:1],
             )
             return
 

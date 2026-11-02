@@ -12,6 +12,7 @@ import aiohttp
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 
 from .const import (
     ALADHAN_API_BASE,
@@ -306,8 +307,12 @@ class MuslimAssistantCoordinator(DataUpdateCoordinator):
     def _calculate_next_prayer(
         self, timings: dict[str, str]
     ) -> dict[str, Any]:
-        """Calculate the next upcoming prayer."""
-        now = datetime.now()
+        """Calculate the next upcoming prayer.
+
+        Uses Home Assistant's configured time zone, so the timestamp is an
+        exact, time-zone-aware moment the Adhan can be scheduled for.
+        """
+        now = dt_util.now()
 
         for prayer in PRAYERS:
             time_str = timings.get(prayer, "")
@@ -316,7 +321,8 @@ class MuslimAssistantCoordinator(DataUpdateCoordinator):
             clean = time_str.split(" ")[0]
             try:
                 prayer_time = datetime.strptime(clean, "%H:%M").replace(
-                    year=now.year, month=now.month, day=now.day
+                    year=now.year, month=now.month, day=now.day,
+                    tzinfo=now.tzinfo,
                 )
                 if prayer_time > now:
                     time_remaining = prayer_time - now
@@ -337,7 +343,8 @@ class MuslimAssistantCoordinator(DataUpdateCoordinator):
         fajr_str = timings.get("Fajr", "05:00").split(" ")[0]
         try:
             fajr_time = datetime.strptime(fajr_str, "%H:%M").replace(
-                year=now.year, month=now.month, day=now.day
+                year=now.year, month=now.month, day=now.day,
+                tzinfo=now.tzinfo,
             ) + timedelta(days=1)
             time_remaining = fajr_time - now
             hours, remainder = divmod(

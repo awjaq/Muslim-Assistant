@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -16,7 +17,9 @@ from homeassistant.const import (
     CONF_LONGITUDE,
     EVENT_HOMEASSISTANT_STARTED,
 )
-from homeassistant.core import Event, HomeAssistant
+from homeassistant.core import Event, HomeAssistant, callback
+from homeassistant.helpers.event import async_track_point_in_time
+from homeassistant.util import dt as dt_util
 
 from .const import (
     CONF_AUTO_ADHAN,
@@ -92,78 +95,81 @@ def _async_setup_automations(
     """
     options = entry.options
 
-    # ── Auto-play Adhan at every prayer time ──
-    if options.get(CONF_AUTO_ADHAN, False):
+    # ── Exact-time prayer actions (Adhan + notification) ──
+    # The coordinator only refreshes every few minutes, so instead of waiting
+    # for the next-prayer sensor to change we schedule a timer for the exact
+    # prayer minute and act the moment it arrives.
+    auto_adhan = options.get(CONF_AUTO_ADHAN, False)
+    notify_service = options.get(CONF_NOTIFY_SERVICE, "")
+    auto_notify = options.get(CONF_AUTO_NOTIFY, False) and bool(notify_service)
 
-        async def _handle_adhan_on_prayer(event: Event) -> None:
-            """Play Adhan when the next prayer changes."""
-            if event.data.get("entity_id") != NEXT_PRAYER_ENTITY:
+    if auto_adhan or auto_notify:
+        coordinator: MuslimAssistantCoordinator = hass.data[DOMAIN][entry.entry_id]
+        scheduled: dict[str, Any] = {"at": None, "cancel": None}
+
+        async def _on_prayer_time(prayer: str, prayer_time: str) -> None:
+            if prayer not in ADHAN_PRAYERS:
                 return
-            old_state = event.data.get("old_state")
-            new_state = event.data.get("new_state")
-            # The sensor shows the UPCOMING prayer, so when it changes the
-            # prayer that has just arrived is the OLD state.
-            if (
-                old_state
-                and new_state
-                and old_state.state != new_state.state
-                and old_state.state in ADHAN_PRAYERS
-                and new_state.state not in ("unknown", "unavailable")
-            ):
-                prayer = old_state.state
-                _LOGGER.info("Auto-playing Adhan for %s", prayer)
+            if auto_adhan:
+                _LOGGER.info("Prayer time: playing Adhan for %s", prayer)
                 await hass.services.async_call(
                     DOMAIN, "play_adhan", {"prayer": prayer}, blocking=False
                 )
+            if auto_notify:
+                domain, _, service = notify_service.partition(".")
+                if service:
+                    await hass.services.async_call(
+                        domain,
+                        service,
+                        {
+                            "title": f"Prayer Time: {prayer}",
+                            "message": (
+                                f"It's time for {prayer} prayer at {prayer_time}"
+                            ),
+                        },
+                        blocking=False,
+                    )
 
-        unsub = hass.bus.async_listen("state_changed", _handle_adhan_on_prayer)
-        entry.async_on_unload(unsub)
-        _LOGGER.debug("Automation enabled: auto-play Adhan at prayer times")
+        @callback
+        def _schedule_next() -> None:
+            """(Re)arm a timer for the upcoming prayer."""
+            next_prayer = (coordinator.data or {}).get("next_prayer") or {}
+            when = dt_util.parse_datetime(next_prayer.get("timestamp") or "")
+            name = next_prayer.get("name")
+            if when is None or not name:
+                return
+            if when.tzinfo is None:
+                when = when.replace(tzinfo=dt_util.get_default_time_zone())
+            if scheduled["at"] == when:
+                return  # already armed for this prayer
+            if scheduled["cancel"]:
+                scheduled["cancel"]()
+            scheduled["at"] = when
+            prayer_time = next_prayer.get("time", "")
 
-    # ── Prayer time mobile notification ──
-    if options.get(CONF_AUTO_NOTIFY, False):
-        notify_service = options.get(CONF_NOTIFY_SERVICE, "")
+            async def _fire(_now: datetime) -> None:
+                scheduled["cancel"] = None
+                await _on_prayer_time(name, prayer_time)
+                # Refresh right away so the sensors and the next timer move on.
+                await coordinator.async_request_refresh()
 
-        if notify_service:
+            scheduled["cancel"] = async_track_point_in_time(hass, _fire, when)
+            _LOGGER.debug("Next prayer action scheduled: %s at %s", name, when)
 
-            async def _handle_prayer_notification(event: Event) -> None:
-                """Send notification when prayer time arrives."""
-                if event.data.get("entity_id") != NEXT_PRAYER_ENTITY:
-                    return
-                old_state = event.data.get("old_state")
-                new_state = event.data.get("new_state")
-                if (
-                    old_state
-                    and new_state
-                    and old_state.state != new_state.state
-                    and old_state.state in ADHAN_PRAYERS
-                    and new_state.state not in ("unknown", "unavailable")
-                ):
-                    prayer_name = old_state.state
-                    prayer_time = old_state.attributes.get("time", "")
-                    service_parts = notify_service.split(".", 1)
-                    if len(service_parts) == 2:
-                        await hass.services.async_call(
-                            service_parts[0],
-                            service_parts[1],
-                            {
-                                "title": f"Prayer Time: {prayer_name}",
-                                "message": (
-                                    f"It's time for {prayer_name} prayer"
-                                    f" at {prayer_time}"
-                                ),
-                            },
-                            blocking=False,
-                        )
+        entry.async_on_unload(coordinator.async_add_listener(_schedule_next))
 
-            unsub = hass.bus.async_listen(
-                "state_changed", _handle_prayer_notification
-            )
-            entry.async_on_unload(unsub)
-            _LOGGER.debug(
-                "Automation enabled: prayer notifications via %s",
-                notify_service,
-            )
+        @callback
+        def _cancel_timer() -> None:
+            if scheduled["cancel"]:
+                scheduled["cancel"]()
+
+        entry.async_on_unload(_cancel_timer)
+        _schedule_next()
+        _LOGGER.debug(
+            "Prayer-time actions enabled (adhan=%s, notify=%s)",
+            auto_adhan,
+            auto_notify,
+        )
 
     # ── Play Quran after Fajr ──
     if options.get(CONF_AUTO_QURAN_FAJR, False):
@@ -184,13 +190,9 @@ def _async_setup_automations(
                 today = datetime.now().strftime("%Y-%m-%d")
                 if today in _fajr_played_today:
                     return
+                # Keep only today's date (older entries are no longer needed).
+                _fajr_played_today.intersection_update({today})
                 _fajr_played_today.add(today)
-                # Clean old dates
-                _fajr_played_today.discard(
-                    (datetime.now().replace(day=datetime.now().day - 1)).strftime(
-                        "%Y-%m-%d"
-                    )
-                )
                 _LOGGER.info("Auto-playing Quran after Fajr (Surah Al-Mulk)")
                 import asyncio
 

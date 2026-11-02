@@ -736,6 +736,20 @@ This creates full `media_player` entities, so your Echo devices will show up in 
 
 ---
 
+### Alexa says it "can't play" the Adhan. How do I stop that?
+
+Echo devices can't stream an MP3 link the way Google Home or Sonos can. When they get one, Alexa treats it as a voice search and replies that it can't play it. Muslim Assistant no longer sends the audio link to Echo devices. You choose what they do instead:
+
+1. Go to **Settings > Devices & Services > Muslim Assistant > Configure > Audio & Speaker Settings**.
+2. Set **Alexa / Echo behavior**:
+   - **Announce the prayer name** (default): Alexa says "It is time for Dhuhr prayer". Needs the [Alexa Media Player](https://github.com/alandtse/alexa_media_player) integration.
+   - **Run an Alexa routine**: runs a routine you made in the Alexa app, for example one that opens an Adhan skill. Type the routine's exact name in **Alexa routine for the Adhan**.
+   - **Stay silent**: Echo devices are skipped.
+
+Quran playback always skips Echo devices, for the same reason. Your other speakers still play the full Adhan and Quran audio.
+
+---
+
 ### How do I get Google Home / Nest speakers to show up?
 
 Google Cast devices (Google Home, Nest Hub, Chromecast, etc.) should appear automatically via the built-in **Google Cast** integration. If they don't:

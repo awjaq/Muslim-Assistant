@@ -18,6 +18,16 @@ CONF_QURAN_RECITER = "quran_reciter"
 CONF_ADHAN_SOUND = "adhan_sound"
 CONF_TARGET_PLAYER = "target_media_player"
 
+# Alexa handling (Echo devices cannot stream arbitrary audio URLs)
+CONF_ALEXA_MODE = "alexa_mode"
+CONF_ALEXA_ROUTINE = "alexa_adhan_routine"
+ALEXA_MODE_ANNOUNCE = "announce"
+ALEXA_MODE_ROUTINE = "routine"
+ALEXA_MODE_SKIP = "skip"
+ALEXA_MODES = [ALEXA_MODE_ANNOUNCE, ALEXA_MODE_ROUTINE, ALEXA_MODE_SKIP]
+DEFAULT_ALEXA_MODE = ALEXA_MODE_ANNOUNCE
+ALEXA_PLATFORMS = ("alexa_media", "alexa_devices")
+
 # Automation options
 CONF_AUTO_ADHAN = "auto_play_adhan"
 CONF_AUTO_NOTIFY = "auto_prayer_notification"

@@ -21,9 +21,14 @@ from homeassistant.helpers.selector import (
     SelectSelector,
     SelectSelectorConfig,
     SelectSelectorMode,
+    TextSelector,
 )
 
 from .const import (
+    ALEXA_MODES,
+    CONF_ALEXA_MODE,
+    CONF_ALEXA_ROUTINE,
+    DEFAULT_ALEXA_MODE,
     ADHAN_SOUNDS,
     CALC_METHOD_MAP,
     CONF_ADHAN_SOUND,
@@ -134,6 +139,8 @@ class MuslimAssistantOptionsFlow(OptionsFlowWithConfigEntry):
             if isinstance(target, str):
                 target = [target] if target else []
             user_input[CONF_TARGET_PLAYER] = target
+            # A cleared text field is omitted from user_input; store it empty.
+            user_input.setdefault(CONF_ALEXA_ROUTINE, "")
 
             new_options = {**self.options, **user_input}
             return self.async_create_entry(title="", data=new_options)
@@ -178,6 +185,26 @@ class MuslimAssistantOptionsFlow(OptionsFlowWithConfigEntry):
                             multiple=True,
                         )
                     ),
+                    vol.Optional(
+                        CONF_ALEXA_MODE,
+                        default=self.options.get(
+                            CONF_ALEXA_MODE, DEFAULT_ALEXA_MODE
+                        ),
+                    ): SelectSelector(
+                        SelectSelectorConfig(
+                            options=ALEXA_MODES,
+                            mode=SelectSelectorMode.LIST,
+                            translation_key=CONF_ALEXA_MODE,
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_ALEXA_ROUTINE,
+                        description={
+                            "suggested_value": self.options.get(
+                                CONF_ALEXA_ROUTINE, ""
+                            )
+                        },
+                    ): TextSelector(),
                 }
             ),
         )

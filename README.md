@@ -748,6 +748,20 @@ Echo devices can't stream an MP3 link the way Google Home or Sonos can. When the
 
 Quran playback always skips Echo devices, for the same reason. Your other speakers still play the full Adhan and Quran audio.
 
+#### How do I make Alexa play the actual Adhan at prayer time?
+
+Use an Alexa routine. Muslim Assistant starts it at the exact prayer minute, and the routine plays the Adhan.
+
+1. In the **Alexa app**, go to **More → Routines → +**.
+2. **When this happens → Voice**: type a phrase, for example `adhan time`.
+3. **Add action → Customized**: type what you would say to Alexa to play an Adhan, for example `play Adhan Makkah on Amazon Music`, or open an Adhan skill.
+4. **From**: choose your Echo (for example Kitchen Echo Show). Save the routine.
+5. Say "Alexa, adhan time" once to check it works.
+6. In Home Assistant, go to **Muslim Assistant → Configure → Audio & Speaker Settings**. Set **Alexa / Echo behavior** to **Run an Alexa routine** and type `adhan time` in **Alexa routine for the Adhan**.
+7. Make sure **Configure → Automations → Play Adhan at every prayer time** is on.
+
+Test it from **Developer Tools → Actions → `muslim_assistant.play_adhan`**.
+
 ---
 
 ### How do I get Google Home / Nest speakers to show up?

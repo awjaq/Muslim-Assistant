@@ -36,6 +36,7 @@ _LOGGER = logging.getLogger(__name__)
 
 NEXT_PRAYER_ENTITY = "sensor.muslim_assistant_next_prayer"
 RAMADAN_ENTITY = "sensor.muslim_assistant_ramadan_tracker"
+ADHAN_PRAYERS = ("Fajr", "Dhuhr", "Asr", "Maghrib", "Isha")
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -100,16 +101,19 @@ def _async_setup_automations(
                 return
             old_state = event.data.get("old_state")
             new_state = event.data.get("new_state")
+            # The sensor shows the UPCOMING prayer, so when it changes the
+            # prayer that has just arrived is the OLD state.
             if (
                 old_state
                 and new_state
                 and old_state.state != new_state.state
+                and old_state.state in ADHAN_PRAYERS
                 and new_state.state not in ("unknown", "unavailable")
-                and new_state.state != "Sunrise"
             ):
-                _LOGGER.info("Auto-playing Adhan for %s", new_state.state)
+                prayer = old_state.state
+                _LOGGER.info("Auto-playing Adhan for %s", prayer)
                 await hass.services.async_call(
-                    DOMAIN, "play_adhan", blocking=False
+                    DOMAIN, "play_adhan", {"prayer": prayer}, blocking=False
                 )
 
         unsub = hass.bus.async_listen("state_changed", _handle_adhan_on_prayer)
@@ -132,10 +136,11 @@ def _async_setup_automations(
                     old_state
                     and new_state
                     and old_state.state != new_state.state
+                    and old_state.state in ADHAN_PRAYERS
                     and new_state.state not in ("unknown", "unavailable")
                 ):
-                    prayer_name = new_state.state
-                    prayer_time = new_state.attributes.get("time", "")
+                    prayer_name = old_state.state
+                    prayer_time = old_state.attributes.get("time", "")
                     service_parts = notify_service.split(".", 1)
                     if len(service_parts) == 2:
                         await hass.services.async_call(

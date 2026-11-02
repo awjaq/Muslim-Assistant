@@ -293,6 +293,14 @@ get_allah_names:
 play_adhan:
   name: Play Adhan
   description: Play the Adhan (call to prayer) on your configured media player (Alexa, Google Home, Sonos, etc.).
+  fields:
+    prayer:
+      name: Prayer
+      description: Optional prayer name, used in the Alexa announcement (e.g. "It is time for Dhuhr prayer").
+      required: false
+      example: Dhuhr
+      selector:
+        text:
 
 play_quran:
   name: Play Quran

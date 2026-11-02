@@ -8,6 +8,7 @@ from typing import Any
 import voluptuous as vol
 
 from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
 
 from .const import DOMAIN
@@ -115,7 +116,7 @@ SCHEMA_GET_ALLAH_NAMES = vol.Schema(
     }
 )
 
-SCHEMA_PLAY_ADHAN = vol.Schema({})
+SCHEMA_PLAY_ADHAN = vol.Schema({vol.Optional("prayer"): cv.string})
 
 SCHEMA_PLAY_QURAN = vol.Schema(
     {
@@ -377,7 +378,7 @@ async def async_register_services(hass: HomeAssistant) -> None:
                     "media_player"
                 ].get_entity(entity_id)
                 if entity and hasattr(entity, "async_play_adhan"):
-                    await entity.async_play_adhan()
+                    await entity.async_play_adhan(call.data.get("prayer"))
 
     async def handle_play_quran(call: ServiceCall) -> None:
         """Handle play_quran service - play Quran on the configured speaker."""

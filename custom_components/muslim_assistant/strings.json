@@ -37,12 +37,16 @@
         "data": {
           "quran_reciter": "Quran Reciter",
           "adhan_sound": "Adhan Sound",
-          "target_media_player": "Target Speakers"
+          "target_media_player": "Target Speakers",
+          "alexa_mode": "Alexa / Echo behavior",
+          "alexa_adhan_routine": "Alexa routine for the Adhan"
         },
         "data_description": {
           "quran_reciter": "Select your preferred Quran reciter for audio playback.",
           "adhan_sound": "Select the Adhan sound you prefer.",
-          "target_media_player": "Select one or more media players (Alexa, Google Home, Sonos, phone, etc.). Audio will play on all selected devices."
+          "target_media_player": "Select one or more media players (Alexa, Google Home, Sonos, phone, etc.). Audio will play on all selected devices.",
+          "alexa_mode": "Echo devices can't stream the Adhan audio file, which is why Alexa says it can't play it. Choose what Echo devices do instead. Quran playback always skips Echo devices.",
+          "alexa_adhan_routine": "Only used with 'Run an Alexa routine'. Type the exact name of a routine you made in the Alexa app (for example one that plays an Adhan skill)."
         }
       },
       "prayer_adjustments": {
@@ -87,12 +91,33 @@
   },
   "entity": {
     "sensor": {
-      "prayer_fajr": { "name": "Fajr" },
-      "prayer_sunrise": { "name": "Sunrise" },
-      "prayer_dhuhr": { "name": "Dhuhr" },
-      "prayer_asr": { "name": "Asr" },
-      "prayer_maghrib": { "name": "Maghrib" },
-      "prayer_isha": { "name": "Isha" }
+      "prayer_fajr": {
+        "name": "Fajr"
+      },
+      "prayer_sunrise": {
+        "name": "Sunrise"
+      },
+      "prayer_dhuhr": {
+        "name": "Dhuhr"
+      },
+      "prayer_asr": {
+        "name": "Asr"
+      },
+      "prayer_maghrib": {
+        "name": "Maghrib"
+      },
+      "prayer_isha": {
+        "name": "Isha"
+      }
+    }
+  },
+  "selector": {
+    "alexa_mode": {
+      "options": {
+        "announce": "Announce the prayer name (\"It is time for Dhuhr prayer\")",
+        "routine": "Run an Alexa routine",
+        "skip": "Stay silent (skip Echo devices)"
+      }
     }
   }
 }
